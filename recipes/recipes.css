@@ -1,0 +1,128 @@
+/* Root Variables for Colors */
+:root {
+    --primary-color: #ff7043;
+    --primary-hover-color: #e35b2e;
+    --optional-h3-color: #ff4000;
+    --text-color: #333;
+    --background-color: #f9f9f9;
+    --back-arrow-bg: rgba(0, 0, 0, 0.2);
+    --back-arrow-hover-bg: rgba(0, 0, 0, 0.3);
+    --white: white;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 10px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 3rem;
+}
+
+.back-arrow {
+    position: absolute;
+    left: 20px;
+    bottom: 15px;
+    background-color: var(--back-arrow-bg);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 0px 25px; 
+    cursor: pointer;
+    font-size: 3rem; 
+    font-weight: 900;
+    height: auto;
+    text-decoration: none;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease, transform 0.2s ease; /* Smooth transition for hover */
+}
+
+/* back arrow hover effect */
+.back-arrow:hover {
+    background-color: var(--back-arrow-hover-bg);
+    transform: translateY(-3px);
+}
+
+
+/* Main Content */
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+img {
+    width: 100%;
+    height: auto; 
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+h2 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-top: 20px;
+}
+
+h3 {
+    font-size: 2rem;
+    margin-top: 20px;
+    color: var(--optional-h3-color);
+}
+
+p {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+ul, ol {
+    margin: 20px 0; 
+    padding-left: 50px;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    margin-bottom: 20px;
+}
+
+ul li, ol li {
+    margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--primary-hover-color);
+}
+
+footer p {
+    margin: 0;
+}
