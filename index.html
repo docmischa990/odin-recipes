@@ -7,13 +7,44 @@
     <title>Odin Recipes</title>
   </head>
   <body>
+    <!-- ! header section -->
     <header>
       <h1>Odin Recipes</h1>
+      <!-- * add recipe button -->
+      <button id="add-recipe-btn">+ Add New Recipe</button>
     </header>
 
+    <!-- ! hidden form element -->
+    <div id="add-recipe-form" class="hidden">
+      <h2>Add New Recipe</h2>
+      <form id="recipe-form">
+        <label for="recipe-type">Type:</label>
+        <select id="recipe-type" required>
+          <option value="" disabled selected>Select Type</option>
+          <option value="vegetarian">Vegetarian</option>
+          <option value="non-vegetarian">Non-Vegetarian</option>
+        </select>
+
+        <label for="recipe-name">Recipe Name:</label>
+        <input type="text" id="recipe-name" placeholder="Enter Recipe Name" required />
+
+        <label for="recipe-img">Choose Image:</label>
+        <input type="file" id="recipe-img" accept="image/*" required>
+
+        <label for="recipe-desc">Short Description:</label>
+        <textarea id="recipe-desc" placeholder="Enter Recipe Description" rows="3" required></textarea>
+
+        <button type="submit">Save Recipe</button>
+        <button type="button" id="cancel-recipe-btn">Cancel</button>
+      </form>
+    </div>
+
     <main>
+      <!-- ! Dynamic Container for New Recipes -->
+      <div id="new-recipes"></div>
+
       <div id="recipes">
-        <!-- Vegetarian Section -->
+        <!-- ! Vegetarian Section -->
         <div class="recipe-category vegetarian">
           <h2>Vegetarian</h2>
           <ul>
@@ -66,27 +97,10 @@
                 <a href="/odin-recipes/recipes/crepes.html">View Recipe</a>
               </div>
             </li>
-            <li>
-              <div class="add-recipe-form">
-                <h3>Add New Vegetarian Recipe</h3>
-                <form id="add-veg-recipe">
-                  <label for="veg-recipe-name">Recipe Name:</label>
-                  <input type="text" id="veg-recipe-name" required />
-
-                  <label for="veg-recipe-img">Image URL:</label>
-                  <input type="url" id="veg-recipe-img" required />
-
-                  <label for="veg-recipe-desc">Short Description:</label>
-                  <textarea id="veg-recipe-desc" rows="3" required></textarea>
-
-                  <button type="submit">Add Recipe</button>
-                </form>
-              </div>
-            </li>
           </ul>
         </div>
 
-        <!-- Non-Vegetarian Section -->
+        <!-- ! Non-Vegetarian Section -->
         <div class="recipe-category non-vegetarian">
           <h2>Non-Vegetarian</h2>
           <ul>
@@ -138,28 +152,12 @@
                 >
               </div>
             </li>
-            <li>
-              <div class="add-recipe-form">
-                <h3>Add New Non-Vegetarian Recipe</h3>
-                <form id="add-nonveg-recipe">
-                  <label for="nonveg-recipe-name">Recipe Name:</label>
-                  <input type="text" id="nonveg-recipe-name" required />
-
-                  <label for="nonveg-recipe-img">Image URL:</label>
-                  <input type="url" id="nonveg-recipe-img" required />
-
-                  <label for="nonveg-recipe-desc">Short Description:</label>
-                  <textarea id="nonveg-recipe-desc" rows="3" required></textarea>
-
-                  <button type="submit">Add Recipe</button>
-                </form>
-              </div>
-            </li>
           </ul>
         </div>
       </div>
     </main>
 
+    <!-- ! footer section -->
     <footer>
       <p>&copy; 2025 Odin Recipes by Mischa</p>
     </footer>

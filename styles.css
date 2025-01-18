@@ -11,6 +11,9 @@
     --white: #fff;
     --shadow-color: rgba(0, 0, 0, 0.1);
     --hover-shadow-color: rgba(0, 0, 0, 0.2);
+    --form-bg-color: #fff5f0;
+    --form-border-color: #ff7043;
+    --btn-color: #ff4000;
 }
 
 /* General Reset */
@@ -43,6 +46,7 @@ header h1 {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* Recipe Categories */
 .recipe-category h2 {
     margin-bottom: 40px;
     margin-top: 50px;
@@ -51,8 +55,6 @@ header h1 {
     border-bottom: 2px solid var(--secondary-color);
     padding-bottom: 5px;
 }
-
-/* Recipe Cards in List */
 
 .recipe-category ul {
     list-style: none;
@@ -71,9 +73,9 @@ header h1 {
     align-items: stretch;
 }
 
+/* Recipe Cards */
 .recipe-card {
-    height: auto%; 
-    min-height: 450px; 
+    min-height: 450px;
     background-color: var(--white);
     border-radius: 10px;
     box-shadow: 0 4px 8px var(--shadow-color);
@@ -84,7 +86,6 @@ header h1 {
     flex-direction: column;
     justify-content: space-between;
 }
-
 
 .recipe-card img {
     width: 100%;
@@ -101,7 +102,7 @@ header h1 {
     color: var(--text-color);
 }
 
-recipe-card p {
+.recipe-card p {
     font-size: 0.9rem;
     color: var(--secondary-text-color);
     margin-bottom: 15px;
@@ -127,62 +128,72 @@ recipe-card p {
     box-shadow: 0 8px 15px var(--hover-shadow-color);
 }
 
-/* General Styles for Add Recipe Form */
-.add-recipe-form {
-    background-color: #f9f9f9;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .add-recipe-form h3 {
-    margin-top: 0;
-    color: #333;
+/* Add New Recipe Form */
+#add-recipe-form {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: var(--form-bg-color);
+    border: 2px solid var(--form-border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+#add-recipe-form h2 {
     font-size: 1.5rem;
-  }
-  
-  .add-recipe-form label {
+    color: var(--btn-color);
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+#add-recipe-form label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-    color: #555;
-  }
-  
-  .add-recipe-form input,
-  .add-recipe-form textarea {
+    color: var(--text-color);
+}
+
+#add-recipe-form input,
+#add-recipe-form textarea,
+#add-recipe-form select {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--text-color);
     border-radius: 5px;
     font-size: 1rem;
-  }
-  
-  .add-recipe-form button {
-    background-color: #007bff;
-    color: white;
+}
+
+/* Button Styling */
+button, #add-recipe-form button {
+    background-color: var(--btn-color);
+    color: var(--white);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
     border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 1rem;
+    border-radius: 25px;
     cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .add-recipe-form button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Style Variations */
-  .vegetarian .add-recipe-form {
-    border-color: #88c999;
-  }
-  
-  .non-vegetarian .add-recipe-form {
-    border-color: #f1a9a0;
-  }
+    transition: all 0.4s ease;
+    box-shadow: 0 5px 10px var(--shadow-color), 0 2px 5px var(--hover-shadow-color);
+}
+
+button:hover, #add-recipe-form button:hover {
+    background-color: var(--primary-hover-color);
+    box-shadow: 0 10px 15px var(--hover-shadow-color);
+    transform: translateY(-3px);
+}
+
+button:active, #add-recipe-form button:active {
+    transform: translateY(2px);
+    box-shadow: 0 5px 10px var(--shadow-color);
+}
+
+button:focus, #add-recipe-form button:focus {
+    outline: none;
+    border: 2px solid var(--secondary-color);
+}
+
 
 /* Footer Styling */
 footer {
