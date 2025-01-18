@@ -127,6 +127,63 @@ recipe-card p {
     box-shadow: 0 8px 15px var(--hover-shadow-color);
 }
 
+/* General Styles for Add Recipe Form */
+.add-recipe-form {
+    background-color: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .add-recipe-form h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.5rem;
+  }
+  
+  .add-recipe-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .add-recipe-form input,
+  .add-recipe-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  .add-recipe-form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .add-recipe-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Style Variations */
+  .vegetarian .add-recipe-form {
+    border-color: #88c999;
+  }
+  
+  .non-vegetarian .add-recipe-form {
+    border-color: #f1a9a0;
+  }
+
 /* Footer Styling */
 footer {
     text-align: center;
