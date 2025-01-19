@@ -1,4 +1,4 @@
-// Select Elements
+// ! Select Elements
 const addRecipeButton = document.getElementById('add-recipe-btn');
 const addRecipeForm = document.getElementById('add-recipe-form');
 const recipeContainer = document.getElementById('recipes');
@@ -9,19 +9,19 @@ const recipeTypeInput = document.getElementById('recipe-type');
 const saveRecipeButton = document.getElementById('save-recipe');
 const successMessage = document.createElement('p');
 
-// Add success message styling
+// ! Add success message styling
 successMessage.style.color = 'green';
 successMessage.style.marginTop = '10px';
 successMessage.style.display = 'none';
 addRecipeForm.appendChild(successMessage);
 
-// Toggle Form Visibility
+// ! Toggle Form Visibility
 addRecipeButton.addEventListener('click', () => {
     addRecipeForm.style.display =
         addRecipeForm.style.display === 'block' ? 'none' : 'block';
 });
 
-// Save Recipe Data to Local Storage
+// ?FIXME -  Save Recipe Data to Local Storage
 saveRecipeButton.addEventListener('click', (event) => {
     event.preventDefault();
 
@@ -30,7 +30,7 @@ saveRecipeButton.addEventListener('click', (event) => {
     const type = recipeTypeInput.value.trim();
     const file = recipeImageInput.files[0];
 
-    // Validate form inputs and highlight empty fields
+    // ! Validate form inputs and highlight empty fields
     let isValid = true;
 
     if (!title) {
@@ -70,26 +70,26 @@ saveRecipeButton.addEventListener('click', (event) => {
             type,
         };
 
-        // Get existing recipes from local storage
+        // ! Get existing recipes from local storage
         const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
         existingRecipes.push(recipeData);
 
-        // Save updated recipes to local storage
+        // ! Save updated recipes to local storage
         localStorage.setItem('recipes', JSON.stringify(existingRecipes));
 
-        // Add to the DOM
+        // ! Add to the DOM
         addRecipeToDOM(recipeData);
 
-        // Clear the form
+        // ! Clear the form
         recipeTitleInput.value = '';
         recipeImageInput.value = '';
         recipeDescriptionInput.value = '';
         recipeTypeInput.value = 'Vegetarian'; // Reset default type
 
-        // Hide the form
+        // ! Hide the form
         addRecipeForm.style.display = 'none';
 
-        // Display success message
+        // ! Display success message
         successMessage.textContent = 'Recipe saved successfully!';
         successMessage.style.display = 'block';
         setTimeout(() => {
@@ -100,7 +100,7 @@ saveRecipeButton.addEventListener('click', (event) => {
     reader.readAsDataURL(file);
 });
 
-// Function to Add Recipe to the DOM
+// ! Function to Add Recipe to the DOM
 function addRecipeToDOM(recipe) {
     const recipeCategory = document.querySelector(
         `.recipe-category.${recipe.type.toLowerCase()} ul`
@@ -123,8 +123,11 @@ function addRecipeToDOM(recipe) {
     recipeCategory.appendChild(recipeCard);
 }
 
-// Load Recipes from Local Storage on Page Load
+// ! Load Recipes from Local Storage on Page Load
 window.addEventListener('load', () => {
     const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
     storedRecipes.forEach((recipe) => addRecipeToDOM(recipe));
 });
+
+// ? TypeError: null is not an object (evaluating 'saveRecipeButton.addEventListener') 
+// ? I checked the error log on the inspect element tab in my browser and this error came up
