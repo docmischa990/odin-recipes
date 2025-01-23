@@ -198,7 +198,20 @@ button:focus, #add-recipe-form button:focus {
     margin-top: 10px;
     background-color: var(--secondary-color);
     transition: color 0.3s;
+    margin-right: 10px;
 }
+
+button.delete-btn img, button.edit-btn img {
+    width: 35px;
+    height: 35px;
+    background-color: var(--secondary-color);
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
+}
+
 
 
 /* Footer Styling */

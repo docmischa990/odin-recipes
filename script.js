@@ -8,9 +8,8 @@ const recipeDescriptionInput = document.getElementById('recipe-description');
 const recipeTypeInput = document.getElementById('recipe-type');
 const saveRecipeButton = document.getElementById('save-recipe');
 const successMessage = document.getElementById('success-message');
-//TODO - Make sure than after clicking the edit button,
-//TODO - the page should automatically scroll up to the top
-//TODO - where the add new recipe is located to make it more functional
+const cancelRecipeButton = document.getElementById('cancel-recipe-btn');
+
 let isEditable = false;
 let editIndex = null;
 
@@ -70,11 +69,11 @@ saveRecipeButton.addEventListener('click', (event) => {
         if (isEditable && editIndex !== null) {
             // ! Update Recipe in Local Storage
             existingRecipes[editIndex] = recipeData;
-            isEditable = false;
-            editIndex = null;
+            successMessage.textContent = 'Recipe updated successfully!';
         } else {
             // ! Add New Recipe
             existingRecipes.push(recipeData);
+            successMessage.textContent = 'Recipe saved successfully!';
         }
 
         // ! Save to Local Storage
@@ -88,13 +87,8 @@ saveRecipeButton.addEventListener('click', (event) => {
 
         // ! Hide the form
         addRecipeForm.style.display = 'none';
-//FIXME - The message should update with 'Recipe 
-//FIXME - updated successfully!' after editing and saved 
-//FIXME - recipe button is clicked again
+
         // ! Display success message
-        successMessage.textContent = isEditable
-            ? 'Recipe updated successfully!'
-            : 'Recipe saved successfully!';
         successMessage.style.color = 'green';
         successMessage.style.marginTop = '10px';
         successMessage.style.textAlign = 'center';
@@ -122,7 +116,7 @@ function addRecipeToDOM(recipe, index) {
         console.error(`No matching category found for type: ${recipe.type}`);
         return;
     }
-//TODO - change edit/delete icons
+
     const recipeCard = document.createElement('li');
     recipeCard.classList.add('dynamic-card');
     recipeCard.innerHTML = `
@@ -132,8 +126,12 @@ function addRecipeToDOM(recipe, index) {
             <p>${recipe.description}</p>
             <a href="#">View Recipe</a>
             <div class="recipe-actions">
-                <button class="edit-btn" data-index="${index}">✏️</button>
-                <button class="delete-btn" data-index="${index}">🗑️</button>
+                <button class="edit-btn" data-index="${index}">
+                    <img src="Icons/icons8-edit.svg" alt="Edit Icon" width="20" height="20">
+                </button>
+                <button class="delete-btn" data-index="${index}">
+                    <img src="Icons/icons8-trash.svg" alt="Delete Icon" width="20" height="20">
+                </button>
             </div>
         </div>
     `;
@@ -156,7 +154,6 @@ function loadRecipes() {
     const categories = document.querySelectorAll('.recipe-category ul');
 
     categories.forEach((ul) => {
-        // Remove dynamically added cards only
         Array.from(ul.children).forEach((child) => {
             if (child.classList.contains('dynamic-card')) {
                 child.remove();
@@ -187,6 +184,11 @@ function loadRecipeForEditing(index) {
     isEditable = true;
     editIndex = index;
     addRecipeForm.style.display = 'block';
+
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+    });
 }
 
 // ! Delete Recipe
@@ -194,7 +196,7 @@ function deleteRecipe(index) {
     const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
     storedRecipes.splice(index, 1);
     localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-    loadRecipes(); // Reload DOM
+    loadRecipes();
 }
 
 // ! Reset Form
@@ -206,6 +208,15 @@ function resetForm() {
     isEditable = false;
     editIndex = null;
 }
+
+// ! Hide the form when cancel is clicked
+cancelRecipeButton.addEventListener('click', () => {
+    addRecipeForm.style.display = 'none';
+    recipeTitleInput.value = '';
+    recipeImageInput.value = '';
+    recipeDescriptionInput.value = '';
+    recipeTypeInput.value = 'Vegetarian';
+});
 
 // ! Load Recipes on Page Load
 window.addEventListener('load', loadRecipes);
