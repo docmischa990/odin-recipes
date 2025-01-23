@@ -7,21 +7,21 @@ const recipeImageInput = document.getElementById('recipe-img');
 const recipeDescriptionInput = document.getElementById('recipe-description');
 const recipeTypeInput = document.getElementById('recipe-type');
 const saveRecipeButton = document.getElementById('save-recipe');
-const successMessage = document.createElement('p');
-
-// ! Add success message styling
-successMessage.style.color = 'green';
-successMessage.style.marginTop = '10px';
-successMessage.style.display = 'none';
-addRecipeForm.appendChild(successMessage);
+const successMessage = document.getElementById('success-message');
+//TODO - Make sure than after clicking the edit button,
+//TODO - the page should automatically scroll up to the top
+//TODO - where the add new recipe is located to make it more functional
+let isEditable = false;
+let editIndex = null;
 
 // ! Toggle Form Visibility
 addRecipeButton.addEventListener('click', () => {
     addRecipeForm.style.display =
         addRecipeForm.style.display === 'block' ? 'none' : 'block';
+    resetForm();
 });
 
-// ?FIXME -  Save Recipe Data to Local Storage
+// ! Save Recipe Data to Local Storage
 saveRecipeButton.addEventListener('click', (event) => {
     event.preventDefault();
 
@@ -47,61 +47,73 @@ saveRecipeButton.addEventListener('click', (event) => {
         recipeDescriptionInput.style.border = '';
     }
 
-    if (!file) {
-        recipeImageInput.style.border = '2px solid red';
-        isValid = false;
-    } else {
-        recipeImageInput.style.border = '';
-    }
-
     if (!isValid) {
         alert('Please fill in all required fields!');
         return;
     }
 
     const reader = new FileReader();
+
+    // ! Attempt to process and save the recipe
     reader.onload = function (e) {
-        const base64Image = e.target.result;
+        const base64Image = file ? e.target.result : null;
 
         const recipeData = {
             title,
-            image: base64Image,
+            image: base64Image || '',
             description,
             type,
         };
 
-        // ! Get existing recipes from local storage
         const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-        existingRecipes.push(recipeData);
 
-        // ! Save updated recipes to local storage
+        if (isEditable && editIndex !== null) {
+            // ! Update Recipe in Local Storage
+            existingRecipes[editIndex] = recipeData;
+            isEditable = false;
+            editIndex = null;
+        } else {
+            // ! Add New Recipe
+            existingRecipes.push(recipeData);
+        }
+
+        // ! Save to Local Storage
         localStorage.setItem('recipes', JSON.stringify(existingRecipes));
 
-        // ! Add to the DOM
-        addRecipeToDOM(recipeData);
+        // ! Reload Recipes in DOM
+        loadRecipes();
 
         // ! Clear the form
-        recipeTitleInput.value = '';
-        recipeImageInput.value = '';
-        recipeDescriptionInput.value = '';
-        recipeTypeInput.value = 'Vegetarian'; // Reset default type
+        resetForm();
 
         // ! Hide the form
         addRecipeForm.style.display = 'none';
-
+//FIXME - The message should update with 'Recipe 
+//FIXME - updated successfully!' after editing and saved 
+//FIXME - recipe button is clicked again
         // ! Display success message
-        successMessage.textContent = 'Recipe saved successfully!';
+        successMessage.textContent = isEditable
+            ? 'Recipe updated successfully!'
+            : 'Recipe saved successfully!';
+        successMessage.style.color = 'green';
+        successMessage.style.marginTop = '10px';
+        successMessage.style.textAlign = 'center';
         successMessage.style.display = 'block';
+
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 3000);
     };
 
-    reader.readAsDataURL(file);
+    if (file) {
+        reader.readAsDataURL(file);
+    } else {
+        reader.onload();
+    }
 });
 
 // ! Function to Add Recipe to the DOM
-function addRecipeToDOM(recipe) {
+function addRecipeToDOM(recipe, index) {
     const recipeCategory = document.querySelector(
         `.recipe-category.${recipe.type.toLowerCase()} ul`
     );
@@ -110,24 +122,90 @@ function addRecipeToDOM(recipe) {
         console.error(`No matching category found for type: ${recipe.type}`);
         return;
     }
-
+//TODO - change edit/delete icons
     const recipeCard = document.createElement('li');
+    recipeCard.classList.add('dynamic-card');
     recipeCard.innerHTML = `
         <div class="recipe-card">
             <img src="${recipe.image}" alt="${recipe.title}" />
             <h3>${recipe.title}</h3>
             <p>${recipe.description}</p>
             <a href="#">View Recipe</a>
+            <div class="recipe-actions">
+                <button class="edit-btn" data-index="${index}">✏️</button>
+                <button class="delete-btn" data-index="${index}">🗑️</button>
+            </div>
         </div>
     `;
+
     recipeCategory.appendChild(recipeCard);
+
+    // ! Attach Event Listeners to Edit and Delete Buttons
+    recipeCard.querySelector('.edit-btn').addEventListener('click', () => {
+        loadRecipeForEditing(index);
+    });
+
+    recipeCard.querySelector('.delete-btn').addEventListener('click', () => {
+        deleteRecipe(index);
+    });
 }
 
 // ! Load Recipes from Local Storage on Page Load
-window.addEventListener('load', () => {
+function loadRecipes() {
     const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    storedRecipes.forEach((recipe) => addRecipeToDOM(recipe));
-});
+    const categories = document.querySelectorAll('.recipe-category ul');
 
-// ? TypeError: null is not an object (evaluating 'saveRecipeButton.addEventListener') 
-// ? I checked the error log on the inspect element tab in my browser and this error came up
+    categories.forEach((ul) => {
+        // Remove dynamically added cards only
+        Array.from(ul.children).forEach((child) => {
+            if (child.classList.contains('dynamic-card')) {
+                child.remove();
+            }
+        });
+    });
+
+    // Add dynamic recipes
+    storedRecipes.forEach((recipe, index) => addRecipeToDOM(recipe, index));
+}
+
+
+// ! Load a Recipe into the Form for Editing
+function loadRecipeForEditing(index) {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const recipe = storedRecipes[index];
+
+    if (!recipe) return;
+
+    recipeTitleInput.value = recipe.title;
+    recipeDescriptionInput.value = recipe.description;
+    recipeTypeInput.value = recipe.type;
+
+    if (recipe.image) {
+        recipeImageInput.setAttribute('data-placeholder', 'Image already uploaded');
+    }
+
+    isEditable = true;
+    editIndex = index;
+    addRecipeForm.style.display = 'block';
+}
+
+// ! Delete Recipe
+function deleteRecipe(index) {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    storedRecipes.splice(index, 1);
+    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    loadRecipes(); // Reload DOM
+}
+
+// ! Reset Form
+function resetForm() {
+    recipeTitleInput.value = '';
+    recipeDescriptionInput.value = '';
+    recipeTypeInput.value = 'Vegetarian';
+    recipeImageInput.value = '';
+    isEditable = false;
+    editIndex = null;
+}
+
+// ! Load Recipes on Page Load
+window.addEventListener('load', loadRecipes);
