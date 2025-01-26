@@ -39,6 +39,13 @@ saveRecipeButton.addEventListener('click', (event) => {
         recipeTitleInput.style.border = '';
     }
 
+    if (!file) {
+        recipeImageInput.style.border = '2px solid red';
+        isValid = false;
+    } else {
+        recipeImageInput.style.border = '';
+    }
+
     if (!description) {
         recipeDescriptionInput.style.border = '2px solid red';
         isValid = false;
@@ -97,6 +104,7 @@ saveRecipeButton.addEventListener('click', (event) => {
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 3000);
+
     };
 
     if (file) {
@@ -124,7 +132,7 @@ function addRecipeToDOM(recipe, index) {
             <img src="${recipe.image}" alt="${recipe.title}" />
             <h3>${recipe.title}</h3>
             <p>${recipe.description}</p>
-            <a href="#">View Recipe</a>
+            <a href="#" class="view-recipe-btn" data-index="${index}">View Recipe</a>
             <div class="recipe-actions">
                 <button class="edit-btn" data-index="${index}">
                     <img src="Icons/icons8-edit.svg" alt="Edit Icon" width="20" height="20">
@@ -137,6 +145,13 @@ function addRecipeToDOM(recipe, index) {
     `;
 
     recipeCategory.appendChild(recipeCard);
+//NOTE - might be an issue here with a query selector that does not exist
+    // ! Add Event Listener for "View Recipe"
+    recipeCard.querySelector('.view-recipe-btn').addEventListener('click', () => {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const recipe = storedRecipes[index];
+    if (recipe) createRecipePage(recipe);
+});
 
     // ! Attach Event Listeners to Edit and Delete Buttons
     recipeCard.querySelector('.edit-btn').addEventListener('click', () => {
@@ -220,3 +235,101 @@ cancelRecipeButton.addEventListener('click', () => {
 
 // ! Load Recipes on Page Load
 window.addEventListener('load', loadRecipes);
+
+function createRecipePage(recipe) {
+    // Define the structure of the new recipe HTML page
+    const recipePageContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${recipe.title}</title>
+        <link rel="stylesheet" href="recipes/recipes.css">
+    </head>
+    <body>
+        <header>
+            <a href="index.html" class="back-arrow">&#8592;</a>
+            <h1>${recipe.title}</h1>
+        </header>
+        <main>
+            <section class="recipe-image">
+                <img src="${recipe.image}" alt="${recipe.title}">
+            </section>
+            <section class="recipe-description">
+                <h2 class="cre-h2">Description</h2>
+                <p>${recipe.description}</p>
+            </section>
+            <section class="recipe-ingredients">
+                <h2 class="cre-h2">Ingredients</h2>
+                <button class="toggle-btn">
+                    <span class="arrow">▶</span>
+                </button>
+                <ul class="ingredients-list" style="display: none;"></ul>
+                <button class="add-ingredient-btn">+ Add Ingredient</button>
+            </section>
+            <section class="recipe-steps">
+                <h2 class="cre-h2">Steps</h2>
+                <button class="toggle-btn">
+                    <span class="arrow">▶</span>
+                </button>
+                <ol class="steps-list" style="display: none;"></ol>
+                <button class="add-step-btn">+ Add Step</button>
+            </section>
+            <section class="recipe-notes">
+                <h2 class="cre-h2">Notes</h2>
+                <textarea placeholder="Add notes here..."></textarea>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2025 Odin Recipes by Mischa</p>
+        </footer>
+        <script>
+            // Toggle functionality for Ingredients and Steps
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                const arrow = btn.querySelector('.arrow');
+                btn.addEventListener('click', function () {
+                    const list = this.nextElementSibling;
+                    if (list.style.display === 'none' || !list.style.display) {
+                        list.style.display = 'block';
+                        arrow.textContent = '▼'; // Downward arrow
+                    } else {
+                        list.style.display = 'none';
+                        arrow.textContent = '▶'; // Rightward arrow
+                    }
+                });
+            });
+
+            // Add Ingredients
+            document.querySelector('.add-ingredient-btn').addEventListener('click', function () {
+                const ingredient = prompt('Enter an ingredient:');
+                if (ingredient) {
+                    const list = document.querySelector('.ingredients-list');
+                    const li = document.createElement('li');
+                    li.textContent = ingredient;
+                    list.appendChild(li);
+                }
+            });
+
+            // Add Steps
+            document.querySelector('.add-step-btn').addEventListener('click', function () {
+                const step = prompt('Enter a step:');
+                if (step) {
+                    const list = document.querySelector('.steps-list');
+                    const li = document.createElement('li');
+                    li.textContent = step;
+                    list.appendChild(li);
+                }
+            });
+        </script>
+    </body>
+    </html>
+    `;
+
+    // Open the generated HTML page in a new tab
+    const newTab = window.open();
+    newTab.document.write(recipePageContent);
+    newTab.document.close();
+}
+
+

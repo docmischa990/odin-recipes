@@ -9,6 +9,9 @@
     --back-arrow-hover-bg: rgba(0, 0, 0, 0.3);
     --white: white;
     --shadow-color: rgba(0, 0, 0, 0.1);
+    --bootstrap-blue: #007bff;
+    --bootstrap-blue-hover-bg: #0056b3;
+    --footer-bg-color: #333;
 }
 
 /* General Styles */
@@ -112,15 +115,90 @@ ul li, ol li {
     margin-bottom: 10px;
 }
 
+.cre-h2 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-top: 30px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+
+/* Styling for the toggle buttons (arrow-based) */
+.toggle-btn {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    color: var(--optional-h3-color);
+    font-size: 20px;
+    font-weight: bold;
+    gap: 5px;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.toggle-btn .arrow {
+    display: inline-block;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+/* Rotate the arrow when dropdown is active */
+.toggle-btn.active .arrow {
+    transform: rotate(90deg);
+}
+
+/* Styling for the add ingredient/step buttons */
+.add-ingredient-btn,
+.add-step-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--white);
+    background-color: var(--bootstrap-blue);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-ingredient-btn:hover,
+.add-step-btn:hover {
+    background-color: var(--bootstrap-blue-hover-bg);
+}
+
+/* Styling for the notes section */
+.recipe-notes textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    resize: vertical;
+}
+
+.recipe-notes textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Add spacing and alignment to the notes section */
+.recipe-notes {
+    margin-top: 20px;
+}
+
 /* Footer */
 footer {
     text-align: center;
-    margin-top: 40px;
-    padding: 20px;
-    background-color: var(--primary-color);
+    margin-top: 30px;
+    padding: 10px 0;
+    background-color: var(--footer-bg-color);
     color: var(--white);
+    border-radius: 8px;
     font-size: 0.9rem;
-    border-top: 1px solid var(--primary-hover-color);
 }
 
 footer p {

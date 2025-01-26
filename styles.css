@@ -1,4 +1,4 @@
-/* Root Variables for Colors */
+/* ! Root Variables for Colors */
 :root {
     --primary-color: #ff7043;
     --primary-hover-color: #e35b2e;
@@ -16,7 +16,7 @@
     --btn-color: #ff4000;
 }
 
-/* General Reset */
+/* ! General Reset */
 * {
     margin: 0;
     padding: 0;
@@ -31,7 +31,7 @@ body {
     padding: 20px;
 }
 
-/* Header Styling */
+/* ! Header Styling */
 header {
     text-align: center;
     background-color: var(--primary-color);
@@ -46,7 +46,7 @@ header h1 {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Recipe Categories */
+/* ! Recipe Categories */
 .recipe-category h2 {
     margin-bottom: 40px;
     margin-top: 50px;
@@ -73,7 +73,7 @@ header h1 {
     align-items: stretch;
 }
 
-/* Recipe Cards */
+/* ! Recipe Cards */
 .recipe-card {
     min-height: 450px;
     background-color: var(--white);
@@ -85,6 +85,7 @@ header h1 {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-width: 50%; /* * figure this shit out at some point */
 }
 
 .recipe-card img {
@@ -128,7 +129,7 @@ header h1 {
     box-shadow: 0 8px 15px var(--hover-shadow-color);
 }
 
-/* Add New Recipe Form */
+/* ! Add New Recipe Form */
 #add-recipe-form {
     margin: 20px 0;
     padding: 20px;
@@ -163,7 +164,7 @@ header h1 {
     font-size: 1rem;
 }
 
-/* Button Styling */
+/* ! Button Styling */
 button, #add-recipe-form button {
     background-color: var(--btn-color);
     color: var(--white);
@@ -214,7 +215,7 @@ button.delete-btn img, button.edit-btn img {
 
 
 
-/* Footer Styling */
+/* ! Footer Styling */
 footer {
     text-align: center;
     margin-top: 30px;
@@ -222,8 +223,5 @@ footer {
     background-color: var(--footer-bg-color);
     color: var(--footer-text-color);
     border-radius: 8px;
-}
-
-footer p {
-    font-size: 0.9rem;
+    font-size: 1.5rem;
 }
