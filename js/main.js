@@ -242,7 +242,6 @@ cancelRecipeButton.addEventListener('click', () => {
 window.addEventListener('load', loadRecipes);
 
 function createRecipePage(recipe) {
-    // Define the structure of the new recipe HTML page
     const recipePageContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -250,11 +249,11 @@ function createRecipePage(recipe) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${recipe.title}</title>
-        <link rel="stylesheet" href="recipes/recipes.css">
+        <link rel="stylesheet" href="styles/recipes.css">
     </head>
     <body>
         <header>
-            <a href="index.html" class="back-arrow">&#8592;</a>
+            <a href="index.html" class="back-arrow">&#8592; Back</a>
             <h1>${recipe.title}</h1>
         </header>
         <main>
@@ -292,132 +291,110 @@ function createRecipePage(recipe) {
         <footer>
             <p>&copy; 2025 Odin Recipes by Mischa</p>
         </footer>
+        <div id="popup-modal" class="hidden">
+            <div class="modal-content">
+                <h3>Notes for <span id="item-name"></span></h3>
+                <textarea id="popup-notes" placeholder="Enter your notes here..."></textarea>
+                <button id="save-notes-btn">Save Notes</button>
+                <button id="close-modal-btn">Close</button>
+            </div>
+        </div>
         <script>
-            const recipeIndex = ${recipe.index || 0}; // Use recipe index for saving data
+            const recipeIndex = ${recipe.index || 0};
 
-            // Load saved ingredients and steps from local storage
+            // Load recipe data from localStorage
             const loadRecipeData = () => {
                 const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
                 const recipe = storedRecipes[recipeIndex];
                 if (recipe) {
                     // Load ingredients
                     const ingredientsList = document.querySelector('.ingredients-list');
-                    (recipe.ingredients || []).forEach((ingredient) => {
+                    (recipe.ingredients || []).forEach((ingredient, index) => {
                         const li = document.createElement('li');
-                        li.textContent = ingredient;
+                        li.innerHTML = \`\${ingredient} <span class="notes-icon" data-index="\${index}" data-type="ingredient">📝</span>\`;
                         ingredientsList.appendChild(li);
                     });
 
                     // Load steps
                     const stepsList = document.querySelector('.steps-list');
-                    (recipe.steps || []).forEach((step) => {
+                    (recipe.steps || []).forEach((step, index) => {
                         const li = document.createElement('li');
-                        li.textContent = step;
+                        li.innerHTML = \`\${step} <span class="notes-icon" data-index="\${index}" data-type="step">📝</span>\`;
                         stepsList.appendChild(li);
                     });
-
-                    // Load notes images
-                    const uploadedImagesDiv = document.querySelector('.uploaded-images');
-                    if (recipe.notesImages) {
-                        recipe.notesImages.forEach((imageSrc) => {
-                            const img = document.createElement('img');
-                            img.src = imageSrc;
-                            img.alt = 'Uploaded Note Image';
-                            img.classList.add('note-image');
-                            uploadedImagesDiv.appendChild(img);
-                        });
-                    }
                 }
             };
 
-            // Toggle functionality for ingredients and steps
-            document.querySelectorAll('.toggle-btn').forEach((btn) => {
-                const arrow = btn.querySelector('.arrow');
-                btn.addEventListener('click', function () {
-                    const list = this.nextElementSibling;
-                    if (list.style.display === 'none' || !list.style.display) {
-                        list.style.display = 'block';
-                        arrow.textContent = '▼'; // Downward arrow
-                    } else {
-                        list.style.display = 'none';
-                        arrow.textContent = '▶'; // Rightward arrow
-                    }
-                });
-            });
-
-            // Add ingredients
-            document.querySelector('.add-ingredient-btn').addEventListener('click', function () {
-                const ingredient = prompt('Enter an ingredient:');
-                if (ingredient) {
-                    const ingredientsList = document.querySelector('.ingredients-list');
+            // Handle ingredient and step addition
+            const addItem = (type) => {
+                const input = prompt(\`Enter a new \${type}:\`);
+                if (input) {
+                    const list = type === 'ingredient'
+                        ? document.querySelector('.ingredients-list')
+                        : document.querySelector('.steps-list');
                     const li = document.createElement('li');
-                    li.textContent = ingredient;
-                    ingredientsList.appendChild(li);
+                    const itemIndex = list.children.length; // Get the index
+                    li.innerHTML = \`\${input} <span class="notes-icon" data-index="\${itemIndex}" data-type="\${type}">📝</span>\`;
+                    list.appendChild(li);
 
                     // Save to local storage
                     const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
                     const recipe = storedRecipes[recipeIndex];
-                    recipe.ingredients = recipe.ingredients || [];
-                    recipe.ingredients.push(ingredient);
+                    recipe[type === 'ingredient' ? 'ingredients' : 'steps'] = recipe[type === 'ingredient' ? 'ingredients' : 'steps'] || [];
+                    recipe[type === 'ingredient' ? 'ingredients' : 'steps'].push(input);
                     localStorage.setItem('recipes', JSON.stringify(storedRecipes));
                 }
-            });
+            };
 
-            // Add steps
-            document.querySelector('.add-step-btn').addEventListener('click', function () {
-                const step = prompt('Enter a step:');
-                if (step) {
-                    const stepsList = document.querySelector('.steps-list');
-                    const li = document.createElement('li');
-                    li.textContent = step;
-                    stepsList.appendChild(li);
+            document.querySelector('.add-ingredient-btn').addEventListener('click', () => addItem('ingredient'));
+            document.querySelector('.add-step-btn').addEventListener('click', () => addItem('step'));
 
-                    // Save to local storage
-                    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                    const recipe = storedRecipes[recipeIndex];
-                    recipe.steps = recipe.steps || [];
-                    recipe.steps.push(step);
-                    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                }
-            });
+            // Handle popup for notes
+            const modal = document.getElementById('popup-modal');
+            const itemName = document.getElementById('item-name');
+            const notesTextarea = document.getElementById('popup-notes');
+            const saveNotesBtn = document.getElementById('save-notes-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            let currentItemIndex = null;
+            let currentItemType = null;
 
-            // Handle image uploads in the Notes section
-            document.getElementById('image-upload').addEventListener('change', function (event) {
-                const files = event.target.files; // Get selected files
-                const uploadedImagesDiv = document.querySelector('.uploaded-images');
+            document.body.addEventListener('click', (e) => {
+                if (e.target.classList.contains('notes-icon')) {
+                currentItemIndex = e.target.dataset.index;
+                currentItemType = e.target.dataset.type;
+                itemName.textContent = currentItemType + " " + (+currentItemIndex + 1);
+
+            const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+            const recipe = storedRecipes[recipeIndex];
+            const notes = recipe[currentItemType + "Notes"] || [];
+            notesTextarea.value = notes[currentItemIndex] || '';
+
+            modal.classList.remove('hidden');
+
+            window.addEventListener('DOMContentLoaded', () => {
+            modal.classList.add('hidden');
+});
+
+            saveNotesBtn.addEventListener('click', () => {
                 const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
                 const recipe = storedRecipes[recipeIndex];
-                recipe.notesImages = recipe.notesImages || [];
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const reader = new FileReader();
-
-                    // Display the image after reading it
-                    reader.onload = function (e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.alt = \`Note Image \${i + 1}\`;
-                        img.classList.add('note-image');
-                        uploadedImagesDiv.appendChild(img);
-
-                        // Save the image as a base64 string to local storage
-                        recipe.notesImages.push(e.target.result);
-                        localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                    };
-
-                    reader.readAsDataURL(file); // Read file as a data URL
-                }
+                recipe[currentItemType + "Notes"] = recipe[currentItemType + "Notes"] || [];
+                recipe[currentItemType + "Notes"][currentItemIndex] = notesTextarea.value;
+                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                modal.classList.add('hidden');
             });
 
-            // Load initial data for ingredients, steps, and notes images
+            closeModalBtn.addEventListener('click', () => {
+                console.log("Modal closed without saving.");
+                modal.classList.add('hidden'));
+            });
+            // Initial load
             loadRecipeData();
         </script>
     </body>
     </html>
     `;
 
-    // Render the generated HTML content
     document.open();
     document.write(recipePageContent);
     document.close();
