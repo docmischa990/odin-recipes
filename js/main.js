@@ -153,10 +153,10 @@ function addRecipeToDOM(recipe, index) {
 
     // ! Add Event Listener for "View Recipe"
     recipeCard.querySelector('.view-recipe-btn').addEventListener('click', () => {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    const recipe = storedRecipes[index];
-    if (recipe) createRecipePage(recipe);
-});
+        const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+        const recipe = storedRecipes[index];
+        if (recipe) createRecipePage(recipe);
+    });
 
     // ! Attach Event Listeners to Edit and Delete Buttons
     recipeCard.querySelector('.edit-btn').addEventListener('click', () => {
@@ -184,7 +184,6 @@ function loadRecipes() {
     // Add dynamic recipes
     storedRecipes.forEach((recipe, index) => addRecipeToDOM(recipe, index));
 }
-
 
 // ! Load a Recipe into the Form for Editing
 function loadRecipeForEditing(index) {
@@ -283,15 +282,12 @@ function createRecipePage(recipe) {
             <section class="recipe-notes">
                 <h2 class="cre-h2">Notes</h2>
                 <textarea class="recipe-notes-input" placeholder="Add notes here..."></textarea>
+                <button class="save-notes-btn">Save Notes</button>
                 <h3>Add Images</h3>
                 <input type="file" id="image-upload" accept="image/*" multiple>
                 <div class="uploaded-images"></div>
             </section>
-        </main>
-        <footer>
-            <p>&copy; 2025 Odin Recipes by Mischa</p>
-        </footer>
-        <div id="popup-modal" class="hidden">
+            <div id="popup-modal" class="hide">
             <div class="modal-content">
                 <h3>Notes for <span id="item-name"></span></h3>
                 <textarea id="popup-notes" placeholder="Enter your notes here..."></textarea>
@@ -299,6 +295,10 @@ function createRecipePage(recipe) {
                 <button id="close-modal-btn">Close</button>
             </div>
         </div>
+        </main>
+        <footer>
+            <p>&copy; 2025 Odin Recipes by Mischa</p>
+        </footer>
         <script>
             const recipeIndex = ${recipe.index || 0};
 
@@ -322,6 +322,49 @@ function createRecipePage(recipe) {
                         li.innerHTML = \`\${step} <span class="notes-icon" data-index="\${index}" data-type="step">📝</span>\`;
                         stepsList.appendChild(li);
                     });
+                }
+
+                // Toggle functionality for ingredients and steps
+                document.querySelectorAll('.toggle-btn').forEach((btn) => {
+                    const arrow = btn.querySelector('.arrow');
+                    btn.addEventListener('click', function () {
+                        const list = this.nextElementSibling;
+                        if (list.style.display === 'none' || !list.style.display) {
+                            list.style.display = 'block';
+                            arrow.textContent = '▼'; // Downward arrow
+                        } else {
+                            list.style.display = 'none';
+                            arrow.textContent = '▶'; // Rightward arrow
+                        }
+                    });
+                });
+
+                // Load notes images
+                const uploadedImagesDiv = document.querySelector('.uploaded-images');
+                if (recipe.notesImages) {
+                    recipe.notesImages.forEach((imageSrc, index) => {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.classList.add('note-image-container');
+                        const img = document.createElement('img');
+                        img.src = imageSrc;
+                        img.alt = 'Uploaded Note Image';
+                        img.classList.add('note-image');
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.classList.add('delete-image-btn');
+                        deleteBtn.innerHTML = '❌';
+                        deleteBtn.addEventListener('click', () => {
+                            recipe.notesImages.splice(index, 1);
+                            localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                            imgContainer.remove();
+                        });
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(deleteBtn);
+                        uploadedImagesDiv.appendChild(imgContainer);
+                    });
+                    
+                    // Load notes
+                    const notesTextarea = document.querySelector('.recipe-notes-input');
+                    notesTextarea.value = recipe.notes || '';
                 }
             };
 
@@ -360,20 +403,22 @@ function createRecipePage(recipe) {
 
             document.body.addEventListener('click', (e) => {
                 if (e.target.classList.contains('notes-icon')) {
-                currentItemIndex = e.target.dataset.index;
-                currentItemType = e.target.dataset.type;
-                itemName.textContent = currentItemType + " " + (+currentItemIndex + 1);
+                    currentItemIndex = e.target.dataset.index;
+                    currentItemType = e.target.dataset.type;
+                    itemName.textContent = currentItemType + " " + (+currentItemIndex + 1);
 
-            const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-            const recipe = storedRecipes[recipeIndex];
-            const notes = recipe[currentItemType + "Notes"] || [];
-            notesTextarea.value = notes[currentItemIndex] || '';
+                    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+                    const recipe = storedRecipes[recipeIndex];
+                    const notes = recipe[currentItemType + "Notes"] || [];
+                    notesTextarea.value = notes[currentItemIndex] || '';
 
-            modal.classList.remove('hidden');
+                    modal.classList.remove('hide');
+                }
+            });
 
             window.addEventListener('DOMContentLoaded', () => {
-            modal.classList.add('hidden');
-});
+                modal.classList.add('hide');
+            });
 
             saveNotesBtn.addEventListener('click', () => {
                 const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
@@ -381,13 +426,67 @@ function createRecipePage(recipe) {
                 recipe[currentItemType + "Notes"] = recipe[currentItemType + "Notes"] || [];
                 recipe[currentItemType + "Notes"][currentItemIndex] = notesTextarea.value;
                 localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                modal.classList.add('hidden');
+                modal.classList.add('hide');
             });
 
             closeModalBtn.addEventListener('click', () => {
-                console.log("Modal closed without saving.");
-                modal.classList.add('hidden'));
+                modal.classList.add('hide');
             });
+
+            // Handle image uploads in the Notes section
+            document.getElementById('image-upload').addEventListener('change', function (event) {
+                const files = event.target.files; // Get selected files
+                const uploadedImagesDiv = document.querySelector('.uploaded-images');
+                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+                const recipe = storedRecipes[recipeIndex];
+                recipe.notesImages = recipe.notesImages || [];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+
+                    // Display the image after reading it
+                    reader.onload = function (e) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.classList.add('note-image-container');
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = \`Note Image \${i + 1}\`;
+                        img.classList.add('note-image');
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.classList.add('delete-image-btn');
+                        deleteBtn.innerHTML = '❌';
+                        deleteBtn.addEventListener('click', () => {
+                            const index = recipe.notesImages.indexOf(e.target.result);
+                            if (index > -1) {
+                                recipe.notesImages.splice(index, 1);
+                                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                                imgContainer.remove();
+                            }
+                        });
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(deleteBtn);
+                        uploadedImagesDiv.appendChild(imgContainer);
+
+                        // Save the image as a base64 string to local storage
+                        recipe.notesImages.push(e.target.result);
+                        localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                    };
+
+                    reader.readAsDataURL(file); // Read file as a data URL
+                }
+            });
+
+            // Save notes in the notes section
+            document.querySelector('.save-notes-btn').addEventListener('click', () => {
+                const notesTextarea = document.querySelector('.recipe-notes-input');
+                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+                const recipe = storedRecipes[recipeIndex];
+                recipe.notes = notesTextarea.value;
+                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                alert('Notes saved successfully!');
+            });
+
             // Initial load
             loadRecipeData();
         </script>

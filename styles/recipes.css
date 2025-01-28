@@ -91,6 +91,7 @@ h3 {
     font-size: 2rem;
     margin-top: 20px;
     color: var(--optional-h3-color);
+    margin-bottom: 0px;
 }
 
 p {
@@ -168,6 +169,44 @@ ul li, ol li {
     background-color: var(--bootstrap-blue-hover-bg);
 }
 
+/* Save Notes Button */
+.save-notes-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--white);
+    background-color: var(--bootstrap-blue);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.save-notes-btn:hover {
+    background-color: var(--bootstrap-blue-hover-bg);
+}
+
+/* File Input Styling */
+#image-upload {
+    display: block;
+    margin-top: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-color);
+    background-color: var(--white);
+    border: 1px solid var(--primary-color);
+    border-bottom: none;
+    border-top: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+#image-upload:hover {
+    border-color: var(--primary-hover-color);
+}
+
 /* Styling for the notes section */
 .recipe-notes textarea {
     width: 100%;
@@ -214,6 +253,28 @@ ul li, ol li {
     z-index: 10;
 }
 
+.note-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.delete-image-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 5px;
+}
+.note-image-container:hover .delete-image-btn {
+    display: block;
+}
+
 .notes-icon {
     cursor: pointer;
     font-size: 16px;
@@ -232,7 +293,7 @@ ul li, ol li {
     align-items: center;
 }
 
-.hidden {
+#popup-modal.hide {
     display: none;
 }
 
