@@ -176,7 +176,7 @@ ul li, ol li {
     padding: 8px 12px;
     font-size: 14px;
     color: var(--white);
-    background-color: var(--bootstrap-blue);
+    background-color: orangered;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -184,7 +184,7 @@ ul li, ol li {
 }
 
 .save-notes-btn:hover {
-    background-color: var(--bootstrap-blue-hover-bg);
+    background-color: red;
 }
 
 /* File Input Styling */
@@ -314,6 +314,70 @@ ul li, ol li {
 .modal-content button {
     margin: 5px;
 }
+
+/* Style for editable description */
+
+.additional-description {
+    display: none; /* Not necessary here, since p is created dynamically */
+    padding: 5px;
+    border: 1px dashed gray;
+    margin-bottom: 5px;
+}
+
+.remove-description-btn {
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: white;
+    background-color: orangered;
+}
+.recipe-description p {
+    border: 1px dashed transparent;
+    padding: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.recipe-description p[contenteditable="true"] {
+    border-color: #007bff; /* Highlight border when editable */
+    background-color: #f9f9f9;
+    outline: none;
+}
+
+/* Style for additional description boxes */
+.additional-description {
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.additional-description:hover {
+    background-color: #f0f0f0;
+}
+
+/* Buttons styling (if needed for consistency) */
+#edit-description-btn,
+#add-description-btn {
+    display: inline-block;
+    margin: 10px 5px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#edit-description-btn:hover,
+#add-description-btn:hover {
+    background-color: #0056b3;
+}
+
 
 /* Footer */
 footer {

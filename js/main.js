@@ -261,7 +261,9 @@ function createRecipePage(recipe) {
             </section>
             <section class="recipe-description">
                 <h2 class="cre-h2">Description</h2>
-                <p>${recipe.description}</p>
+                <p class="description-paragraph">${recipe.description}</p>
+                <button id="edit-description-btn">Edit</button>
+                <button id="add-description-btn">Add Description</button>
             </section>
             <section class="recipe-ingredients">
                 <h2 class="cre-h2">Ingredients</h2>
@@ -281,20 +283,20 @@ function createRecipePage(recipe) {
             </section>
             <section class="recipe-notes">
                 <h2 class="cre-h2">Notes</h2>
-                <textarea class="recipe-notes-input" placeholder="Add notes here..."></textarea>
+                <textarea class="recipe-notes-input" placeholder="Add notes here...">${recipe.notes || ''}</textarea>
                 <button class="save-notes-btn">Save Notes</button>
                 <h3>Add Images</h3>
                 <input type="file" id="image-upload" accept="image/*" multiple>
                 <div class="uploaded-images"></div>
             </section>
             <div id="popup-modal" class="hide">
-            <div class="modal-content">
-                <h3>Notes for <span id="item-name"></span></h3>
-                <textarea id="popup-notes" placeholder="Enter your notes here..."></textarea>
-                <button id="save-notes-btn">Save Notes</button>
-                <button id="close-modal-btn">Close</button>
+                <div class="modal-content">
+                    <h3>Notes for <span id="item-name"></span></h3>
+                    <textarea id="popup-notes" placeholder="Enter your notes here..."></textarea>
+                    <button id="save-notes-btn">Save Notes</button>
+                    <button id="close-modal-btn">Close</button>
+                </div>
             </div>
-        </div>
         </main>
         <footer>
             <p>&copy; 2025 Odin Recipes by Mischa</p>
@@ -322,49 +324,78 @@ function createRecipePage(recipe) {
                         li.innerHTML = \`\${step} <span class="notes-icon" data-index="\${index}" data-type="step">📝</span>\`;
                         stepsList.appendChild(li);
                     });
-                }
 
-                // Toggle functionality for ingredients and steps
-                document.querySelectorAll('.toggle-btn').forEach((btn) => {
-                    const arrow = btn.querySelector('.arrow');
-                    btn.addEventListener('click', function () {
-                        const list = this.nextElementSibling;
-                        if (list.style.display === 'none' || !list.style.display) {
-                            list.style.display = 'block';
-                            arrow.textContent = '▼'; // Downward arrow
-                        } else {
-                            list.style.display = 'none';
-                            arrow.textContent = '▶'; // Rightward arrow
-                        }
-                    });
-                });
-
-                // Load notes images
-                const uploadedImagesDiv = document.querySelector('.uploaded-images');
-                if (recipe.notesImages) {
-                    recipe.notesImages.forEach((imageSrc, index) => {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.classList.add('note-image-container');
-                        const img = document.createElement('img');
-                        img.src = imageSrc;
-                        img.alt = 'Uploaded Note Image';
-                        img.classList.add('note-image');
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.classList.add('delete-image-btn');
-                        deleteBtn.innerHTML = '❌';
-                        deleteBtn.addEventListener('click', () => {
-                            recipe.notesImages.splice(index, 1);
-                            localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                            imgContainer.remove();
-                        });
-                        imgContainer.appendChild(img);
-                        imgContainer.appendChild(deleteBtn);
-                        uploadedImagesDiv.appendChild(imgContainer);
-                    });
-                    
                     // Load notes
                     const notesTextarea = document.querySelector('.recipe-notes-input');
                     notesTextarea.value = recipe.notes || '';
+
+                    // Toggle functionality for ingredients and steps
+                    document.querySelectorAll('.toggle-btn').forEach((btn) => {
+                        const arrow = btn.querySelector('.arrow');
+                        btn.addEventListener('click', function () {
+                            const list = this.nextElementSibling;
+                            if (list.style.display === 'none' || !list.style.display) {
+                                list.style.display = 'block';
+                                arrow.textContent = '▼'; // Downward arrow
+                            } else {
+                                list.style.display = 'none';
+                                arrow.textContent = '▶'; // Rightward arrow
+                            }
+                        });
+                    });
+
+                    // Load notes images
+                    const uploadedImagesDiv = document.querySelector('.uploaded-images');
+                    if (recipe.notesImages) {
+                        recipe.notesImages.forEach((imageSrc, index) => {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.classList.add('note-image-container');
+                            const img = document.createElement('img');
+                            img.src = imageSrc;
+                            img.alt = 'Uploaded Note Image';
+                            img.classList.add('note-image');
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.classList.add('delete-image-btn');
+                            deleteBtn.innerHTML = '❌';
+                            deleteBtn.addEventListener('click', () => {
+                                recipe.notesImages.splice(index, 1);
+                                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                                imgContainer.remove();
+                            });
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(deleteBtn);
+                            uploadedImagesDiv.appendChild(imgContainer);
+                        });
+                    }
+
+                    // Load description and additional descriptions
+                    const descriptionParagraph = document.querySelector('.description-paragraph');
+                    descriptionParagraph.textContent = recipe.description || '';
+
+                    const recipeDescriptionSection = document.querySelector('.recipe-description');
+                    if (recipe.additionalDescriptions) {
+                        recipe.additionalDescriptions.forEach((desc) => {
+                            const newDescription = document.createElement('p');
+                            newDescription.textContent = desc;
+                            newDescription.contentEditable = true;
+                            newDescription.classList.add('additional-description');
+                            recipeDescriptionSection.appendChild(newDescription);
+
+                            // Create Remove Button for this description
+                            const removeDescriptionBtn = document.createElement('button');
+                            removeDescriptionBtn.textContent = 'Remove';
+                            removeDescriptionBtn.classList.add('remove-description-btn');
+                            removeDescriptionBtn.addEventListener('click', () => {
+                                recipeDescriptionSection.removeChild(newDescription);
+                                recipeDescriptionSection.removeChild(removeDescriptionBtn);
+
+                                // Save the updated additional descriptions to localStorage
+                                saveDescriptionsToLocalStorage();
+                            });
+
+                            recipeDescriptionSection.appendChild(removeDescriptionBtn);
+                        });
+                    }
                 }
             };
 
@@ -483,8 +514,79 @@ function createRecipePage(recipe) {
                 const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
                 const recipe = storedRecipes[recipeIndex];
                 recipe.notes = notesTextarea.value;
+                storedRecipes[recipeIndex] = recipe; // Ensure the updated recipe is saved back
                 localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                console.log('Notes saved:', recipe.notes);
+                console.log('Stored recipes:', storedRecipes);
                 alert('Notes saved successfully!');
+            });
+
+            const editDescriptionBtn = document.getElementById('edit-description-btn');
+            const addDescriptionBtn = document.getElementById('add-description-btn');
+            const descriptionParagraph = document.querySelector('.description-paragraph');
+            const recipeDescriptionSection = document.querySelector('.recipe-description');
+
+            // Helper function to save descriptions to localStorage
+            const saveDescriptionsToLocalStorage = () => {
+                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+                const recipe = storedRecipes[recipeIndex];
+
+                // Ensure recipe exists
+                if (recipe) {
+                    recipe.description = descriptionParagraph?.textContent.trim() || '';
+                    recipe.additionalDescriptions = Array.from(
+                        document.querySelectorAll('.additional-description')
+                    ).map((desc) => desc.textContent.trim());
+
+                    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+                }
+            };
+
+            // Edit Description Button
+            editDescriptionBtn.addEventListener('click', () => {
+                if (!descriptionParagraph) return;
+
+                const isEditable = descriptionParagraph.isContentEditable;
+                descriptionParagraph.contentEditable = !isEditable;
+                editDescriptionBtn.textContent = isEditable ? 'Edit' : 'Save';
+
+                if (isEditable) {
+                    saveDescriptionsToLocalStorage();
+                    alert('Description updated!');
+                }
+            });
+
+            // Add Description Button
+            addDescriptionBtn.addEventListener('click', () => {
+                const newDescription = document.createElement('p');
+                newDescription.textContent = 'Add details here...';
+                newDescription.contentEditable = true;
+                newDescription.classList.add('additional-description');
+
+                // Make it visible when added
+                newDescription.style.display = 'block';
+
+                // Create Remove Button for this description
+                const removeDescriptionBtn = document.createElement('button');
+                removeDescriptionBtn.textContent = 'Remove';
+                removeDescriptionBtn.classList.add('remove-description-btn');
+                removeDescriptionBtn.addEventListener('click', () => {
+                    recipeDescriptionSection.removeChild(newDescription);
+                    recipeDescriptionSection.removeChild(removeDescriptionBtn);
+
+                    // Save the updated additional descriptions to localStorage
+                    saveDescriptionsToLocalStorage();
+                });
+
+                recipeDescriptionSection.appendChild(newDescription);
+                recipeDescriptionSection.appendChild(removeDescriptionBtn);
+            });
+
+            // Auto-save descriptions on input
+            document.body.addEventListener('input', (event) => {
+                if (event.target.classList.contains('additional-description')) {
+                    saveDescriptionsToLocalStorage();
+                }
             });
 
             // Initial load
@@ -498,5 +600,3 @@ function createRecipePage(recipe) {
     document.write(recipePageContent);
     document.close();
 }
-
-
