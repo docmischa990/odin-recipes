@@ -9,9 +9,77 @@ const recipeTypeInput = document.getElementById('recipe-type');
 const saveRecipeButton = document.getElementById('save-recipe');
 const successMessage = document.getElementById('success-message');
 const cancelRecipeButton = document.getElementById('cancel-recipe-btn');
+const searchBar = document.getElementById('search-bar');
+const recipeCards = document.querySelectorAll('.recipe-card');
+const noResultsMessage = document.createElement('p');
 
 let isEditable = false;
 let editIndex = null;
+
+// ! Search Functionality
+
+noResultsMessage.id = 'no-results';
+noResultsMessage.textContent = 'No recipes found. Try a different keyword!';
+noResultsMessage.style.display = 'none';
+recipeContainer.appendChild(noResultsMessage);
+
+// Event Listener: Search Bar Keyup
+searchBar.addEventListener('keyup', handleSearch);
+
+function handleSearch() {
+    // Re-select all recipes dynamically
+    const recipeCards = document.querySelectorAll('.recipe-card');
+    const searchTerm = searchBar.value.toLowerCase().trim();
+    let filteredRecipes = Array.from(recipeCards).filter((card) => {
+        const title = card.querySelector('h3').textContent.toLowerCase();
+        const description = card.querySelector('p').textContent.toLowerCase();
+        return title.includes(searchTerm) || description.includes(searchTerm);
+    });
+
+    // Reset Highlights and Update Recipe Display
+    resetHighlights();
+    filteredRecipes.forEach((card) => {
+        card.style.display = 'block';
+        highlightSearchTerms(card, searchTerm);
+    });
+
+    // Hide non-matching recipes
+    recipeCards.forEach((card) => {
+        if (!filteredRecipes.includes(card)) card.style.display = 'none';
+    });
+
+    // Show or Hide "No Results" Message
+    noResultsMessage.style.display = filteredRecipes.length ? 'none' : 'block';
+}
+
+// Function: Highlight Matching Terms
+function highlightSearchTerms(card, searchTerm) {
+    const titleElement = card.querySelector('h3');
+    const descriptionElement = card.querySelector('p');
+    const highlightTerm = (text) =>
+        text.replace(
+            new RegExp(searchTerm, 'gi'),
+            (match) => `<span class="highlight">${match}</span>`
+        );
+
+    if (titleElement && descriptionElement && searchTerm) {
+        titleElement.innerHTML = highlightTerm(titleElement.textContent);
+        descriptionElement.innerHTML = highlightTerm(descriptionElement.textContent);
+    }
+}
+
+// Function: Reset Highlights
+function resetHighlights() {
+    recipeCards.forEach((card) => {
+        const titleElement = card.querySelector('h3');
+        const descriptionElement = card.querySelector('p');
+
+        if (titleElement && descriptionElement) {
+            titleElement.innerHTML = titleElement.textContent;
+            descriptionElement.innerHTML = descriptionElement.textContent;
+        }
+    });
+}
 
 // ! Toggle Form Visibility
 addRecipeButton.addEventListener('click', () => {
