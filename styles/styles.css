@@ -252,3 +252,199 @@ footer {
     border-radius: 8px;
     font-size: 1.5rem;
 }
+
+
+/* ! Responsive Styling */
+/* Mobile-Friendly Media Queries */
+
+/* General Mobile Adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    header {
+        padding: 10px 0;
+        margin-bottom: 15px;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    #search-bar {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    #add-recipe-form {
+        padding: 15px;
+    }
+
+    #add-recipe-form h2 {
+        font-size: 1.2rem;
+    }
+
+    #add-recipe-form input,
+    #add-recipe-form textarea,
+    #add-recipe-form select {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    button,
+    #add-recipe-form button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .recipe-category h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        margin-top: 30px;
+    }
+
+    footer {
+        padding: 8px 0;
+        font-size: 1.2rem;
+    }
+}
+
+/* Recipe Cards */
+@media (max-width: 768px) {
+    .recipe-card {
+        min-height: auto;
+        padding: 10px;
+        flex-direction: column;
+        max-width: 100%;
+    }
+
+    .recipe-card img {
+        height: auto;
+    }
+
+    .recipe-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .recipe-card p {
+        font-size: 0.8rem;
+    }
+
+    .recipe-card a {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Recipe List Layout */
+@media (max-width: 768px) {
+    .recipe-category ul {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .recipe-category ul li {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+
+/* Smaller Screens (Mobile, max 480px) */
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    #search-bar {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .recipe-card h3 {
+        font-size: 1rem;
+    }
+
+    .recipe-card p {
+        font-size: 0.7rem;
+    }
+
+    .recipe-card a {
+        padding: 6px 8px;
+        font-size: 0.7rem;
+    }
+
+    #add-recipe-form {
+        padding: 10px;
+    }
+
+    #add-recipe-form h2 {
+        font-size: 1rem;
+    }
+
+    #add-recipe-form input,
+    #add-recipe-form textarea,
+    #add-recipe-form select {
+        font-size: 0.8rem;
+        padding: 6px;
+    }
+
+    button,
+    #add-recipe-form button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    footer {
+        font-size: 1rem;
+    }
+}
+
+
+/* Large Screens (Desktop) */
+@media (min-width: 1024px) {
+    body {
+        padding: 40px 20px; /* Add breathing room */
+    }
+
+    header {
+        padding: 30px 0;
+    }
+
+    header h1 {
+        font-size: 3rem; /* Adjust for larger screens */
+    }
+
+    .recipe-category ul {
+        display: grid; /* Use grid layout */
+        grid-template-columns: 1fr 1fr; /* 2 columns */
+        grid-template-rows: auto auto; /* Auto-adjust rows */
+        gap: 30px; /* Space between grid items */
+    }
+
+    .recipe-category ul li {
+        max-width: 100%; /* Ensure li fits inside grid cells */
+    }
+
+    .recipe-card {
+        min-height: 420px; /* Optional: adjust height */
+        display: flex; /* Flexbox for content alignment */
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Adjust the image inside the recipe card */
+    .recipe-card img {
+        width: 100%; /* Take up full width of the container */
+        height: 400; /* Maintain aspect ratio */
+        object-fit: cover; /* Crop the image to fill the container */
+        border-radius: 12px; /* Optional: add rounded corners */
+    }
+
+    footer {
+        font-size: 1.8rem; /* Larger footer text */
+        padding: 15px 0;
+    }
+}
+
