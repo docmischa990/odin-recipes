@@ -1,55 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Recipe</title>
-    <link rel="stylesheet" href="../styles/recipes.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Recipe</title>
+  <link rel="stylesheet" href="../styles/recipes.css" />
 </head>
 <body>
-    <header>
-        <a href="index.html" class="back-arrow">&#8592; Back</a>
-        <h1 id="recipe-title">Recipe Title</h1>
-    </header>
-    <main>
-        <section class="recipe-image">
-            <img id="recipe-image" src="" alt="Recipe Image">
-        </section>
-        <section class="recipe-description">
-            <h2 class="cre-h2">Description</h2>
-            <p id="description-text" class="description-paragraph"></p>
-            <button id="edit-description-btn">Edit</button>
-            <button id="add-description-btn">Add Description</button>
-        </section>
-        <section class="recipe-ingredients">
-            <h2 class="cre-h2">Ingredients</h2>
-            <button class="toggle-btn">
-                <span class="arrow">▶</span>
-            </button>
-            <ul id="ingredients-list" class="ingredients-list" style="display: none;"></ul>
-            <button id="add-ingredient-btn">+ Add Ingredient</button>
-        </section>
-        <section class="recipe-steps">
-            <h2 class="cre-h2">Steps</h2>
-            <button class="toggle-btn">
-                <span class="arrow">▶</span>
-            </button>
-            <ol id="steps-list" class="steps-list" style="display: none;"></ol>
-            <button id="add-step-btn">+ Add Step</button>
-        </section>
-        <section class="recipe-notes">
-            <h2 class="cre-h2">Notes</h2>
-            <textarea id="notes-textarea" class="recipe-notes-input" placeholder="Add notes here..."></textarea>
-            <button id="save-notes-btn">Save Notes</button>
-            <h3>Add Images</h3>
-            <input type="file" id="image-upload" accept="image/*" multiple>
-            <div id="uploaded-images" class="uploaded-images"></div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Odin Recipes by Mischa</p>
-    </footer>
-    
-    <script src="../js/new-recipe.js"></script>
+  <header>
+    <a href="../index.html" class="back-arrow">&#8592; Back</a>
+    <h1 id="recipe-title">Recipe Title</h1>
+  </header>
+  <main>
+    <section class="recipe-image">
+      <img id="recipe-image" src="" alt="Recipe Image" />
+    </section>
+    <section class="recipe-description">
+      <h2 class="cre-h2">Description</h2>
+      <p id="description-text" class="description-paragraph"></p>
+      <button id="edit-description-btn">Edit</button>
+      <button id="add-description-btn">Add Description</button>
+    </section>
+    <section class="recipe-ingredients">
+      <h2 class="cre-h2">Ingredients</h2>
+      <button class="toggle-btn"><span class="arrow">▶</span></button>
+      <ul id="ingredients-list" class="ingredients-list" style="display: none;"></ul>
+      <button id="add-ingredient-btn">+ Add Ingredient</button>
+    </section>
+    <section class="recipe-steps">
+      <h2 class="cre-h2">Steps</h2>
+      <button class="toggle-btn"><span class="arrow">▶</span></button>
+      <ol id="steps-list" class="steps-list" style="display: none;"></ol>
+      <button id="add-step-btn">+ Add Step</button>
+    </section>
+    <section class="recipe-notes">
+      <h2 class="cre-h2">Notes</h2>
+      <textarea id="notes-textarea" class="recipe-notes-input" placeholder="Add notes here..."></textarea>
+      <button id="save-notes-btn">Save Notes</button>
+      <h3>Add Images</h3>
+      <input type="file" id="image-upload" accept="image/*" multiple />
+      <div id="uploaded-images" class="uploaded-images"></div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Odin Recipes by Mischa</p>
+  </footer>
+  <script src="../scripts/new-recipe.js"></script>
 </body>
 </html>
