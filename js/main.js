@@ -1,3 +1,7 @@
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { db } from "./firebase-init.js";
+
+
 // ! Select Elements
 const addRecipeButton = document.getElementById('add-recipe-btn');
 const addRecipeForm = document.getElementById('add-recipe-form');
@@ -88,7 +92,7 @@ addRecipeButton.addEventListener('click', () => {
     resetForm();
 });
 
-// ! Save Recipe Data to Local Storage
+// ! Save Recipe
 saveRecipeButton.addEventListener('click', (event) => {
     event.preventDefault();
 
@@ -100,45 +104,38 @@ saveRecipeButton.addEventListener('click', (event) => {
     const ingredients = [];
     const steps = [];
 
-    // ! Validate form inputs and highlight empty fields
     let isValid = true;
-
     if (!title) {
         recipeTitleInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeTitleInput.style.border = '';
     }
-
     if (!file) {
         recipeImageInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeImageInput.style.border = '';
     }
-
     if (!description) {
         recipeDescriptionInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeDescriptionInput.style.border = '';
     }
-
     if (!isValid) {
         alert('Please fill in all required fields!');
         return;
     }
 
     const reader = new FileReader();
-
-    // ! Attempt to process and save the recipe
     reader.onload = function (e) {
         const base64Image = file ? e.target.result : null;
-
+        const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
         const recipeData = {
             id: isEditable && editIndex !== null 
                 ? existingRecipes[editIndex].id 
-                : self.crypto.randomUUID(),
+                : self.crypto.randomUUID(),  // Generate a new unique ID
             title,
             image: base64Image || '',
             description,
@@ -147,40 +144,35 @@ saveRecipeButton.addEventListener('click', (event) => {
             steps,
         };
 
-        const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+        // ! Save to Firestore
+        const recipesCollection = collection(db, "recipes");
 
-        if (isEditable && editIndex !== null) {
-            // ! Update Recipe in Local Storage
-            existingRecipes[editIndex] = recipeData;
-            successMessage.textContent = 'Recipe updated successfully!';
-        } else {
-            // ! Add New Recipe
-            existingRecipes.push(recipeData);
+        addDoc(recipesCollection, recipeData)
+        .then((docRef) => {
+            console.log("Recipe saved with ID:", docRef.id);
             successMessage.textContent = 'Recipe saved successfully!';
+        })
+        .catch((error) => {
+            console.error("Error saving recipe:", error);
+        });
+
+        // Also save to localStorage (optional, for caching or offline support)
+        if (isEditable && editIndex !== null) {
+            existingRecipes[editIndex] = recipeData;
+        } else {
+            existingRecipes.push(recipeData);
         }
-
-        // ! Save to Local Storage
         localStorage.setItem('recipes', JSON.stringify(existingRecipes));
-
-        // ! Reload Recipes in DOM
         loadRecipes();
-
-        // ! Clear the form
         resetForm();
-
-        // ! Hide the form
         addRecipeForm.style.display = 'none';
-
-        // ! Display success message
         successMessage.style.color = 'green';
         successMessage.style.marginTop = '10px';
         successMessage.style.textAlign = 'center';
         successMessage.style.display = 'block';
-
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 3000);
-
     };
 
     if (file) {
@@ -189,6 +181,7 @@ saveRecipeButton.addEventListener('click', (event) => {
         reader.onload();
     }
 });
+
 
 // ! Function to Add Recipe to the DOM
 function addRecipeToDOM(recipe, index) {
@@ -243,25 +236,28 @@ function addRecipeToDOM(recipe, index) {
 
 // ! Load Recipes from Local Storage on Page Load
 function loadRecipes() {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    const categories = document.querySelectorAll('.recipe-category ul');
-
-    categories.forEach((ul) => {
-        Array.from(ul.children).forEach((child) => {
-            if (child.classList.contains('dynamic-card')) {
-                child.remove();
-            }
+    const recipesCollection = collection(db, "recipes");
+    getDocs(recipesCollection)
+        .then((querySnapshot) => {
+            // Clear current recipes
+            recipeContainer.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                let recipe = doc.data();
+                recipe.id = doc.id; // set unique id
+                addRecipeToDOM(recipe);
+            });
+        })
+        .catch((error) => {
+            console.error("Error loading recipes:", error);
         });
-    });
-
-    // Add dynamic recipes
-    storedRecipes.forEach((recipe, index) => addRecipeToDOM(recipe, index));
 }
+
 
 // ! Load a Recipe into the Form for Editing
 function loadRecipeForEditing(index) {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    const recipe = storedRecipes[index];
+    db.collection("recipes").doc(recipe.id).update(recipeData)
+    .then(() => { console.log("Recipe updated successfully"); })
+    .catch((error) => { console.error("Error updating recipe:", error); });
 
     if (!recipe) return;
 
@@ -285,9 +281,9 @@ function loadRecipeForEditing(index) {
 
 // ! Delete Recipe
 function deleteRecipe(index) {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    storedRecipes.splice(index, 1);
-    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    db.collection("recipes").doc(recipe.id).delete()
+    .then(() => { console.log("Recipe deleted successfully"); })
+    .catch((error) => { console.error("Error deleting recipe:", error); });
     loadRecipes();
 }
 
@@ -325,7 +321,7 @@ function createRecipePage(recipe) {
     </head>
     <body>
         <header>
-            <a href="index.html" class="back-arrow">&#8592; Back</a>
+            <a href="index.html" class="back-arrow">&#8592;</a>
             <h1>${recipe.title}</h1>
         </header>
         <main>

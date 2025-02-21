@@ -1,3 +1,7 @@
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { db } from "./firebase-init.js";
+
+
 // ! Select Elements
 const addRecipeButton = document.getElementById('add-recipe-btn');
 const addRecipeForm = document.getElementById('add-recipe-form');
@@ -88,7 +92,7 @@ addRecipeButton.addEventListener('click', () => {
     resetForm();
 });
 
-// ! Save Recipe Data to Local Storage
+// ! Save Recipe
 saveRecipeButton.addEventListener('click', (event) => {
     event.preventDefault();
 
@@ -100,42 +104,38 @@ saveRecipeButton.addEventListener('click', (event) => {
     const ingredients = [];
     const steps = [];
 
-    // ! Validate form inputs and highlight empty fields
     let isValid = true;
-
     if (!title) {
         recipeTitleInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeTitleInput.style.border = '';
     }
-
     if (!file) {
         recipeImageInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeImageInput.style.border = '';
     }
-
     if (!description) {
         recipeDescriptionInput.style.border = '2px solid red';
         isValid = false;
     } else {
         recipeDescriptionInput.style.border = '';
     }
-
     if (!isValid) {
         alert('Please fill in all required fields!');
         return;
     }
 
     const reader = new FileReader();
-
-    // ! Attempt to process and save the recipe
     reader.onload = function (e) {
         const base64Image = file ? e.target.result : null;
-
+        const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
         const recipeData = {
+            id: isEditable && editIndex !== null 
+                ? existingRecipes[editIndex].id 
+                : self.crypto.randomUUID(),  // Generate a new unique ID
             title,
             image: base64Image || '',
             description,
@@ -144,40 +144,35 @@ saveRecipeButton.addEventListener('click', (event) => {
             steps,
         };
 
-        const existingRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+        // ! Save to Firestore
+        const recipesCollection = collection(db, "recipes");
 
-        if (isEditable && editIndex !== null) {
-            // ! Update Recipe in Local Storage
-            existingRecipes[editIndex] = recipeData;
-            successMessage.textContent = 'Recipe updated successfully!';
-        } else {
-            // ! Add New Recipe
-            existingRecipes.push(recipeData);
+        addDoc(recipesCollection, recipeData)
+        .then((docRef) => {
+            console.log("Recipe saved with ID:", docRef.id);
             successMessage.textContent = 'Recipe saved successfully!';
+        })
+        .catch((error) => {
+            console.error("Error saving recipe:", error);
+        });
+
+        // Also save to localStorage (optional, for caching or offline support)
+        if (isEditable && editIndex !== null) {
+            existingRecipes[editIndex] = recipeData;
+        } else {
+            existingRecipes.push(recipeData);
         }
-
-        // ! Save to Local Storage
         localStorage.setItem('recipes', JSON.stringify(existingRecipes));
-
-        // ! Reload Recipes in DOM
         loadRecipes();
-
-        // ! Clear the form
         resetForm();
-
-        // ! Hide the form
         addRecipeForm.style.display = 'none';
-
-        // ! Display success message
         successMessage.style.color = 'green';
         successMessage.style.marginTop = '10px';
         successMessage.style.textAlign = 'center';
         successMessage.style.display = 'block';
-
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 3000);
-
     };
 
     if (file) {
@@ -186,6 +181,7 @@ saveRecipeButton.addEventListener('click', (event) => {
         reader.onload();
     }
 });
+
 
 // ! Function to Add Recipe to the DOM
 function addRecipeToDOM(recipe, index) {
@@ -205,7 +201,7 @@ function addRecipeToDOM(recipe, index) {
             <img src="${recipe.image}" alt="${recipe.title}" />
             <h3>${recipe.title}</h3>
             <p>${recipe.description}</p>
-            <a href="#" class="view-recipe-btn" data-index="${index}">View Recipe</a>
+            <a href="#" class="view-recipe-btn" data-id="${recipe.id}">View Recipe</a>
             <div class="recipe-actions">
                 <button class="edit-btn" data-index="${index}">
                     <img src="Icons/icons8-edit.svg" alt="Edit Icon" width="20" height="20">
@@ -220,9 +216,11 @@ function addRecipeToDOM(recipe, index) {
     recipeCategory.appendChild(recipeCard);
 
     // ! Add Event Listener for "View Recipe"
-    recipeCard.querySelector('.view-recipe-btn').addEventListener('click', () => {
+    recipeCard.querySelector('.view-recipe-btn').addEventListener('click', (e) => {
+        const recipeId = e.target.dataset.id;
+        localStorage.setItem('currentRecipeId', recipeId);
         const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-        const recipe = storedRecipes[index];
+        const recipe = storedRecipes.find(r => r.id == recipeId);
         if (recipe) createRecipePage(recipe);
     });
 
@@ -238,25 +236,28 @@ function addRecipeToDOM(recipe, index) {
 
 // ! Load Recipes from Local Storage on Page Load
 function loadRecipes() {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    const categories = document.querySelectorAll('.recipe-category ul');
-
-    categories.forEach((ul) => {
-        Array.from(ul.children).forEach((child) => {
-            if (child.classList.contains('dynamic-card')) {
-                child.remove();
-            }
+    const recipesCollection = collection(db, "recipes");
+    getDocs(recipesCollection)
+        .then((querySnapshot) => {
+            // Clear current recipes
+            recipeContainer.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                let recipe = doc.data();
+                recipe.id = doc.id; // set unique id
+                addRecipeToDOM(recipe);
+            });
+        })
+        .catch((error) => {
+            console.error("Error loading recipes:", error);
         });
-    });
-
-    // Add dynamic recipes
-    storedRecipes.forEach((recipe, index) => addRecipeToDOM(recipe, index));
 }
+
 
 // ! Load a Recipe into the Form for Editing
 function loadRecipeForEditing(index) {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    const recipe = storedRecipes[index];
+    db.collection("recipes").doc(recipe.id).update(recipeData)
+    .then(() => { console.log("Recipe updated successfully"); })
+    .catch((error) => { console.error("Error updating recipe:", error); });
 
     if (!recipe) return;
 
@@ -280,9 +281,9 @@ function loadRecipeForEditing(index) {
 
 // ! Delete Recipe
 function deleteRecipe(index) {
-    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-    storedRecipes.splice(index, 1);
-    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    db.collection("recipes").doc(recipe.id).delete()
+    .then(() => { console.log("Recipe deleted successfully"); })
+    .catch((error) => { console.error("Error deleting recipe:", error); });
     loadRecipes();
 }
 
@@ -320,7 +321,7 @@ function createRecipePage(recipe) {
     </head>
     <body>
         <header>
-            <a href="index.html" class="back-arrow">&#8592; Back</a>
+            <a href="index.html" class="back-arrow">&#8592;</a>
             <h1>${recipe.title}</h1>
         </header>
         <main>
@@ -370,295 +371,287 @@ function createRecipePage(recipe) {
             <p>&copy; 2025 Odin Recipes by Mischa</p>
         </footer>
         <script>
-            const recipeIndex = ${recipe.index || 0};
+            const recipeId = "${recipe.id || self.crypto.randomUUID()}";  // This creates the unique identity
 
-            // Load recipe data from localStorage
-            const loadRecipeData = () => {
-                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                const recipe = storedRecipes[recipeIndex];
-                if (recipe) {
-                    // Load ingredients
-                    const ingredientsList = document.querySelector('.ingredients-list');
-                    (recipe.ingredients || []).forEach((ingredient, index) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = \`\${ingredient} <span class="notes-icon" data-index="\${index}" data-type="ingredient">📝</span>\`;
-                        ingredientsList.appendChild(li);
-                    });
+  // Load recipe data from localStorage by searching for the unique id.
+  const loadRecipeData = () => {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const recipe = storedRecipes.find(r => r.id == recipeId);
+    if (recipe) {
+      // Load ingredients
+      const ingredientsList = document.querySelector('.ingredients-list');
+      ingredientsList.innerHTML = "";
+      (recipe.ingredients || []).forEach((ingredient, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = \`\${ingredient} <span class="notes-icon" data-index="\${index}" data-type="ingredient">📝</span>\`;
+        ingredientsList.appendChild(li);
+      });
 
-                    // Load steps
-                    const stepsList = document.querySelector('.steps-list');
-                    (recipe.steps || []).forEach((step, index) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = \`\${step} <span class="notes-icon" data-index="\${index}" data-type="step">📝</span>\`;
-                        stepsList.appendChild(li);
-                    });
+      // Load steps
+      const stepsList = document.querySelector('.steps-list');
+      stepsList.innerHTML = "";
+      (recipe.steps || []).forEach((step, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = \`\${step} <span class="notes-icon" data-index="\${index}" data-type="step">📝</span>\`;
+        stepsList.appendChild(li);
+      });
 
-                    // Load notes
-                    const notesTextarea = document.querySelector('.recipe-notes-input');
-                    notesTextarea.value = recipe.notes || '';
+      // Load notes
+      const notesTextarea = document.querySelector('.recipe-notes-input');
+      notesTextarea.value = recipe.notes || '';
 
-                    // Toggle functionality for ingredients and steps
-                    document.querySelectorAll('.toggle-btn').forEach((btn) => {
-                        const arrow = btn.querySelector('.arrow');
-                        btn.addEventListener('click', function () {
-                            const list = this.nextElementSibling;
-                            if (list.style.display === 'none' || !list.style.display) {
-                                list.style.display = 'block';
-                                arrow.textContent = '▼'; // Downward arrow
-                            } else {
-                                list.style.display = 'none';
-                                arrow.textContent = '▶'; // Rightward arrow
-                            }
-                        });
-                    });
+      // Toggle functionality for ingredients and steps
+      document.querySelectorAll('.toggle-btn').forEach((btn) => {
+        const arrow = btn.querySelector('.arrow');
+        btn.addEventListener('click', function () {
+          const list = this.nextElementSibling;
+          if (!list.style.display || list.style.display === 'none') {
+            list.style.display = 'block';
+            arrow.textContent = '▼'; // Downward arrow
+          } else {
+            list.style.display = 'none';
+            arrow.textContent = '▶'; // Rightward arrow
+          }
+        });
+      });
 
-                    // Load notes images
-                    const uploadedImagesDiv = document.querySelector('.uploaded-images');
-                    if (recipe.notesImages) {
-                        recipe.notesImages.forEach((imageSrc, index) => {
-                            const imgContainer = document.createElement('div');
-                            imgContainer.classList.add('note-image-container');
-                            const img = document.createElement('img');
-                            img.src = imageSrc;
-                            img.alt = 'Uploaded Note Image';
-                            img.classList.add('note-image');
-                            const deleteBtn = document.createElement('button');
-                            deleteBtn.classList.add('delete-image-btn');
-                            deleteBtn.innerHTML = '❌';
-                            deleteBtn.addEventListener('click', () => {
-                                recipe.notesImages.splice(index, 1);
-                                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                                imgContainer.remove();
-                            });
-                            imgContainer.appendChild(img);
-                            imgContainer.appendChild(deleteBtn);
-                            uploadedImagesDiv.appendChild(imgContainer);
-                        });
-                    }
+      // Load notes images
+      const uploadedImagesDiv = document.querySelector('.uploaded-images');
+      uploadedImagesDiv.innerHTML = "";
+      if (recipe.notesImages) {
+        recipe.notesImages.forEach((imageSrc, index) => {
+          const imgContainer = document.createElement('div');
+          imgContainer.classList.add('note-image-container');
+          const img = document.createElement('img');
+          img.src = imageSrc;
+          img.alt = 'Uploaded Note Image';
+          img.classList.add('note-image');
+          const deleteBtn = document.createElement('button');
+          deleteBtn.classList.add('delete-image-btn');
+          deleteBtn.innerHTML = '❌';
+          deleteBtn.addEventListener('click', () => {
+            recipe.notesImages.splice(index, 1);
+            localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+            imgContainer.remove();
+          });
+          imgContainer.appendChild(img);
+          imgContainer.appendChild(deleteBtn);
+          uploadedImagesDiv.appendChild(imgContainer);
+        });
+      }
 
-                    // Load description and additional descriptions
-                    const descriptionParagraph = document.querySelector('.description-paragraph');
-                    descriptionParagraph.textContent = recipe.description || '';
+      // Load description and additional descriptions
+      const descriptionParagraph = document.querySelector('.description-paragraph');
+      descriptionParagraph.textContent = recipe.description || '';
 
-                    const recipeDescriptionSection = document.querySelector('.recipe-description');
-                    if (recipe.additionalDescriptions) {
-                        recipe.additionalDescriptions.forEach((desc) => {
-                            const newDescription = document.createElement('p');
-                            newDescription.textContent = desc;
-                            newDescription.contentEditable = true;
-                            newDescription.classList.add('additional-description');
-                            recipeDescriptionSection.appendChild(newDescription);
+      const recipeDescriptionSection = document.querySelector('.recipe-description');
+      // Clear any previous additional descriptions
+      document.querySelectorAll('.additional-description').forEach(el => el.remove());
+      if (recipe.additionalDescriptions) {
+        recipe.additionalDescriptions.forEach((desc) => {
+          const newDescription = document.createElement('p');
+          newDescription.textContent = desc;
+          newDescription.contentEditable = true;
+          newDescription.classList.add('additional-description');
+          recipeDescriptionSection.appendChild(newDescription);
 
-                            // Create Remove Button for this description
-                            const removeDescriptionBtn = document.createElement('button');
-                            removeDescriptionBtn.textContent = 'Remove';
-                            removeDescriptionBtn.classList.add('remove-description-btn');
-                            removeDescriptionBtn.addEventListener('click', () => {
-                                recipeDescriptionSection.removeChild(newDescription);
-                                recipeDescriptionSection.removeChild(removeDescriptionBtn);
+          // Create Remove Button for this description
+          const removeDescriptionBtn = document.createElement('button');
+          removeDescriptionBtn.textContent = 'Remove';
+          removeDescriptionBtn.classList.add('remove-description-btn');
+          removeDescriptionBtn.addEventListener('click', () => {
+            recipeDescriptionSection.removeChild(newDescription);
+            recipeDescriptionSection.removeChild(removeDescriptionBtn);
+            saveDescriptionsToLocalStorage();
+          });
+          recipeDescriptionSection.appendChild(removeDescriptionBtn);
+        });
+      }
+    }
+  };
 
-                                // Save the updated additional descriptions to localStorage
-                                saveDescriptionsToLocalStorage();
-                            });
+  // Handle ingredient and step addition
+  const addItem = (type) => {
+  const input = prompt(\`Enter a new \${type}:\`);
+  if (input) {
+    const list = type === 'ingredient'
+      ? document.querySelector('.ingredients-list')
+      : document.querySelector('.steps-list');
+    const li = document.createElement('li');
+    const itemIndex = list.children.length; // Get the current count as the index
+    li.innerHTML = \`\${input} <span class="notes-icon" data-index="\${itemIndex}" data-type="\${type}">📝</span>\`;
+    list.appendChild(li);
 
-                            recipeDescriptionSection.appendChild(removeDescriptionBtn);
-                        });
-                    }
-                }
-            };
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+    
+    // FIX: Check if currentRecipe exists
+    if (!currentRecipe) {
+      console.error("Current recipe not found for id:", recipeId);
+      return;
+    }
+    
+    // Initialize the property if it doesn't exist, then push the new input
+    currentRecipe[type === 'ingredient' ? 'ingredients' : 'steps'] =
+      currentRecipe[type === 'ingredient' ? 'ingredients' : 'steps'] || [];
+    currentRecipe[type === 'ingredient' ? 'ingredients' : 'steps'].push(input);
+    
+    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+  }
+};
 
-            // Handle ingredient and step addition
-            const addItem = (type) => {
-                const input = prompt(\`Enter a new \${type}:\`);
-                if (input) {
-                    const list = type === 'ingredient'
-                        ? document.querySelector('.ingredients-list')
-                        : document.querySelector('.steps-list');
-                    const li = document.createElement('li');
-                    const itemIndex = list.children.length; // Get the index
-                    li.innerHTML = \`\${input} <span class="notes-icon" data-index="\${itemIndex}" data-type="\${type}">📝</span>\`;
-                    list.appendChild(li);
+  document.querySelector('.add-ingredient-btn').addEventListener('click', () => addItem('ingredient'));
+  document.querySelector('.add-step-btn').addEventListener('click', () => addItem('step'));
 
-                    // Save to local storage
-                    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                    const recipe = storedRecipes[recipeIndex];
-                    recipe[type === 'ingredient' ? 'ingredients' : 'steps'] = recipe[type === 'ingredient' ? 'ingredients' : 'steps'] || [];
-                    recipe[type === 'ingredient' ? 'ingredients' : 'steps'].push(input);
-                    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                }
-            };
+  // Handle popup for notes
+  const modal = document.getElementById('popup-modal');
+  const itemName = document.getElementById('item-name');
+  const notesTextarea = document.getElementById('popup-notes');
+  const saveNotesBtn = document.getElementById('save-notes-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  let currentItemIndex = null;
+  let currentItemType = null;
 
-            document.querySelector('.add-ingredient-btn').addEventListener('click', () => addItem('ingredient'));
-            document.querySelector('.add-step-btn').addEventListener('click', () => addItem('step'));
+  document.body.addEventListener('click', (e) => {
+    if (e.target.classList.contains('notes-icon')) {
+      currentItemIndex = e.target.dataset.index;
+      currentItemType = e.target.dataset.type;
+      itemName.textContent = currentItemType + " " + (+currentItemIndex + 1);
 
-            // Handle popup for notes
-            const modal = document.getElementById('popup-modal');
-            const itemName = document.getElementById('item-name');
-            const notesTextarea = document.getElementById('popup-notes');
-            const saveNotesBtn = document.getElementById('save-notes-btn');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-            let currentItemIndex = null;
-            let currentItemType = null;
+      const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+      const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+      const notes = currentRecipe[currentItemType + "Notes"] || [];
+      notesTextarea.value = notes[currentItemIndex] || '';
 
-            document.body.addEventListener('click', (e) => {
-                if (e.target.classList.contains('notes-icon')) {
-                    currentItemIndex = e.target.dataset.index;
-                    currentItemType = e.target.dataset.type;
-                    itemName.textContent = currentItemType + " " + (+currentItemIndex + 1);
+      modal.classList.remove('hide');
+    }
+  });
 
-                    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                    const recipe = storedRecipes[recipeIndex];
-                    const notes = recipe[currentItemType + "Notes"] || [];
-                    notesTextarea.value = notes[currentItemIndex] || '';
+  window.addEventListener('DOMContentLoaded', () => {
+    modal.classList.add('hide');
+  });
 
-                    modal.classList.remove('hide');
-                }
-            });
+  saveNotesBtn.addEventListener('click', () => {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+    currentRecipe[currentItemType + "Notes"] = currentRecipe[currentItemType + "Notes"] || [];
+    currentRecipe[currentItemType + "Notes"][currentItemIndex] = notesTextarea.value;
+    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    modal.classList.add('hide');
+  });
 
-            window.addEventListener('DOMContentLoaded', () => {
-                modal.classList.add('hide');
-            });
+  closeModalBtn.addEventListener('click', () => {
+    modal.classList.add('hide');
+  });
 
-            saveNotesBtn.addEventListener('click', () => {
-                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                const recipe = storedRecipes[recipeIndex];
-                recipe[currentItemType + "Notes"] = recipe[currentItemType + "Notes"] || [];
-                recipe[currentItemType + "Notes"][currentItemIndex] = notesTextarea.value;
-                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                modal.classList.add('hide');
-            });
+  // Handle image uploads in the Notes section
+  document.getElementById('image-upload').addEventListener('change', function (event) {
+    const files = event.target.files;
+    const uploadedImagesDiv = document.querySelector('.uploaded-images');
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+    currentRecipe.notesImages = currentRecipe.notesImages || [];
 
-            closeModalBtn.addEventListener('click', () => {
-                modal.classList.add('hide');
-            });
+    Array.from(files).forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imgContainer = document.createElement('div');
+        imgContainer.classList.add('note-image-container');
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.alt = \`Note Image \${i + 1}\`;
+        img.classList.add('note-image');
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-image-btn');
+        deleteBtn.textContent = "❌";
+        deleteBtn.addEventListener("click", () => {
+          const idx = currentRecipe.notesImages.indexOf(e.target.result);
+          if (idx > -1) {
+            currentRecipe.notesImages.splice(idx, 1);
+            localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+            imgContainer.remove();
+          }
+        });
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(deleteBtn);
+        uploadedImagesDiv.appendChild(imgContainer);
+        currentRecipe.notesImages.push(e.target.result);
+        localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+      };
+      reader.readAsDataURL(file);
+    });
+  });
 
-            // Handle image uploads in the Notes section
-            document.getElementById('image-upload').addEventListener('change', function (event) {
-                const files = event.target.files; // Get selected files
-                const uploadedImagesDiv = document.querySelector('.uploaded-images');
-                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                const recipe = storedRecipes[recipeIndex];
-                recipe.notesImages = recipe.notesImages || [];
+  // Save notes in the notes section
+  document.querySelector('.save-notes-btn').addEventListener('click', () => {
+    const notesTextarea = document.querySelector('.recipe-notes-input');
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+    currentRecipe.notes = notesTextarea.value;
+    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    console.log('Notes saved:', currentRecipe.notes);
+    alert('Notes saved successfully!');
+  });
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const reader = new FileReader();
+  // --- Description Editing and Additional Descriptions ---
+  const editDescriptionBtn = document.getElementById('edit-description-btn');
+  const addDescriptionBtn = document.getElementById('add-description-btn');
+  const descriptionParagraph = document.querySelector('.description-paragraph');
+  const recipeDescriptionSection = document.querySelector('.recipe-description');
 
-                    // Display the image after reading it
-                    reader.onload = function (e) {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.classList.add('note-image-container');
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.alt = \`Note Image \${i + 1}\`;
-                        img.classList.add('note-image');
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.classList.add('delete-image-btn');
-                        deleteBtn.innerHTML = '❌';
-                        deleteBtn.addEventListener('click', () => {
-                            const index = recipe.notesImages.indexOf(e.target.result);
-                            if (index > -1) {
-                                recipe.notesImages.splice(index, 1);
-                                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                                imgContainer.remove();
-                            }
-                        });
-                        imgContainer.appendChild(img);
-                        imgContainer.appendChild(deleteBtn);
-                        uploadedImagesDiv.appendChild(imgContainer);
+  // Helper function to save description data
+  const saveDescriptionsToLocalStorage = () => {
+    const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+    const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+    if (currentRecipe) {
+      currentRecipe.description = document.getElementById('description-text').textContent.trim();
+      currentRecipe.additionalDescriptions = Array.from(document.querySelectorAll('.additional-description')).map(desc => desc.textContent.trim());
+      localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+    }
+  };
 
-                        // Save the image as a base64 string to local storage
-                        recipe.notesImages.push(e.target.result);
-                        localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                    };
+  // Edit Description Button
+  editDescriptionBtn.addEventListener('click', () => {
+    if (!descriptionParagraph) return;
+    const isEditable = descriptionParagraph.isContentEditable;
+    descriptionParagraph.contentEditable = !isEditable;
+    editDescriptionBtn.textContent = isEditable ? 'Edit' : 'Save';
+    if (isEditable) {
+      const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
+      const currentRecipe = storedRecipes.find(r => r.id == recipeId);
+      currentRecipe.description = descriptionParagraph.textContent.trim();
+      localStorage.setItem('recipes', JSON.stringify(storedRecipes));
+      alert('Description updated!');
+    }
+  });
 
-                    reader.readAsDataURL(file); // Read file as a data URL
-                }
-            });
+  // Add Description Button
+  addDescriptionBtn.addEventListener('click', () => {
+    const newDesc = document.createElement('p');
+    newDesc.textContent = 'Add details here...';
+    newDesc.contentEditable = true;
+    newDesc.classList.add('additional-description');
+    newDesc.style.display = 'block';
+    const removeDescBtn = document.createElement('button');
+    removeDescBtn.textContent = 'Remove';
+    removeDescBtn.classList.add('remove-description-btn');
+    removeDescBtn.addEventListener('click', () => {
+      recipeDescriptionSection.removeChild(newDesc);
+      recipeDescriptionSection.removeChild(removeDescBtn);
+      saveDescriptionsToLocalStorage();
+    });
+    recipeDescriptionSection.appendChild(newDesc);
+    recipeDescriptionSection.appendChild(removeDescBtn);
+  });
 
-            // Save notes in the notes section
-            document.querySelector('.save-notes-btn').addEventListener('click', () => {
-                const notesTextarea = document.querySelector('.recipe-notes-input');
-                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                const recipe = storedRecipes[recipeIndex];
-                recipe.notes = notesTextarea.value;
-                storedRecipes[recipeIndex] = recipe; // Ensure the updated recipe is saved back
-                localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                console.log('Notes saved:', recipe.notes);
-                console.log('Stored recipes:', storedRecipes);
-                alert('Notes saved successfully!');
-            });
+  document.body.addEventListener('input', (event) => {
+    if (event.target.classList.contains('additional-description')) {
+      saveDescriptionsToLocalStorage();
+    }
+  });
 
-            const editDescriptionBtn = document.getElementById('edit-description-btn');
-            const addDescriptionBtn = document.getElementById('add-description-btn');
-            const descriptionParagraph = document.querySelector('.description-paragraph');
-            const recipeDescriptionSection = document.querySelector('.recipe-description');
-
-            // Helper function to save descriptions to localStorage
-            const saveDescriptionsToLocalStorage = () => {
-                const storedRecipes = JSON.parse(localStorage.getItem('recipes')) || [];
-                const recipe = storedRecipes[recipeIndex];
-
-                // Ensure recipe exists
-                if (recipe) {
-                    recipe.description = descriptionParagraph?.textContent.trim() || '';
-                    recipe.additionalDescriptions = Array.from(
-                        document.querySelectorAll('.additional-description')
-                    ).map((desc) => desc.textContent.trim());
-
-                    localStorage.setItem('recipes', JSON.stringify(storedRecipes));
-                }
-            };
-
-            // Edit Description Button
-            editDescriptionBtn.addEventListener('click', () => {
-                if (!descriptionParagraph) return;
-
-                const isEditable = descriptionParagraph.isContentEditable;
-                descriptionParagraph.contentEditable = !isEditable;
-                editDescriptionBtn.textContent = isEditable ? 'Edit' : 'Save';
-
-                if (isEditable) {
-                    saveDescriptionsToLocalStorage();
-                    alert('Description updated!');
-                }
-            });
-
-            // Add Description Button
-            addDescriptionBtn.addEventListener('click', () => {
-                const newDescription = document.createElement('p');
-                newDescription.textContent = 'Add details here...';
-                newDescription.contentEditable = true;
-                newDescription.classList.add('additional-description');
-
-                // Make it visible when added
-                newDescription.style.display = 'block';
-
-                // Create Remove Button for this description
-                const removeDescriptionBtn = document.createElement('button');
-                removeDescriptionBtn.textContent = 'Remove';
-                removeDescriptionBtn.classList.add('remove-description-btn');
-                removeDescriptionBtn.addEventListener('click', () => {
-                    recipeDescriptionSection.removeChild(newDescription);
-                    recipeDescriptionSection.removeChild(removeDescriptionBtn);
-
-                    // Save the updated additional descriptions to localStorage
-                    saveDescriptionsToLocalStorage();
-                });
-
-                recipeDescriptionSection.appendChild(newDescription);
-                recipeDescriptionSection.appendChild(removeDescriptionBtn);
-            });
-
-            // Auto-save descriptions on input
-            document.body.addEventListener('input', (event) => {
-                if (event.target.classList.contains('additional-description')) {
-                    saveDescriptionsToLocalStorage();
-                }
-            });
-
-            // Initial load
-            loadRecipeData();
+  // --- Initial load ---
+  loadRecipeData();
         </script>
     </body>
     </html>
