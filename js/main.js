@@ -325,7 +325,7 @@ function createRecipePage(recipe) {
     </head>
     <body>
         <header>
-            <a href="index.html" class="back-arrow">&#8592; Back</a>
+            <a href="index.html" class="back-arrow">&#8592;</a>
             <h1>${recipe.title}</h1>
         </header>
         <main>
